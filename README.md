@@ -1,4 +1,4 @@
-# 教典搜揣
+# 教典鬥搜揣
 
 A clean, standalone search site for the Ministry of Education's
 [Dictionary of Frequently-Used Taiwan Taiwanese](https://sutian.moe.edu.tw/) (臺灣台語常用詞辭典).
@@ -35,5 +35,7 @@ make serve     # http://127.0.0.1:8000
 
 The source code is MIT licensed. Dictionary content originates from the Ministry of Education
 dictionary and is redistributed under [CC BY-ND 3.0 TW](https://creativecommons.org/licenses/by-nd/3.0/tw/).
+Han characters use [jf open 粉圓](https://github.com/justfont/open-huninn-font) (SIL OFL 1.1),
+the same typeface as [taigi-converter](https://taigikeyboard.tw/taigi-converter/).
 This is an unofficial third-party site and is not affiliated with or endorsed by the Ministry of
 Education.

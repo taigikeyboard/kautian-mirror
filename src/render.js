@@ -30,13 +30,12 @@ export function statusView(text, retry) {
   return box;
 }
 
-export function resultsView(query, { results, error, truncated }, limit) {
+export function resultsView(query, { results, error, truncated }) {
   if (error) return statusView(error === "too-long" ? "正規表達式傷長（上濟 64 字）。" : "正規表達式無正確。");
   if (!results.length) return statusView(`揣無「${query}」。`);
   const frag = document.createDocumentFragment();
-  const count = results.length >= limit ? `頭前 ${limit} 筆` : `${results.length} 筆`;
   // truncated: the engine's regex scan hit its cap, so matches may be missing
-  frag.append(el("p", "results-meta", truncated ? `${count}，結果可能無齊全` : count));
+  if (truncated) frag.append(el("p", "results-meta", "結果可能無齊全"));
   const list = el("ul", "results");
   for (const res of results) {
     const item = el("li");
@@ -86,16 +85,10 @@ function relationsList(synonyms = [], antonyms = []) {
   return dl;
 }
 
-function readingSpan(className, label, readings) {
-  const span = el("span", className);
-  span.append(el("span", "reading-label", label), readings.join(" / "));
-  return span;
-}
-
 function readingsLine(entry) {
-  const line = el("div", "readings");
-  line.append(readingSpan("reading-tl", "台羅", entry.tl));
-  if (entry.poj) line.append(readingSpan("reading-poj", "白話字", entry.poj));
+  const line = el("p", "readings");
+  line.append(el("span", "reading-tl", entry.tl.join(" / ")));
+  if (entry.poj) line.append(el("span", "reading-poj", entry.poj.join(" / ")));
   return line;
 }
 
@@ -109,10 +102,12 @@ function factsList(entry) {
   return dl;
 }
 
-function senseItem(sense) {
+// number: 1-based sense number, or null when the entry has a single sense
+function senseItem(sense, number) {
   const item = el("li", "sense");
   const head = el("div", "sense-head");
-  if (sense.pos) head.append(el("span", "pos", sense.pos));
+  const label = [number, sense.pos].filter(Boolean).join("  ");
+  if (label) head.append(el("span", "pos", label));
   head.append(definitionNode(sense.definition || ""));
   item.append(head);
   if (sense.examples?.length) {
@@ -134,11 +129,8 @@ export function entryView(entry) {
   const article = el("article", "entry");
   const head = el("header", "entry-head");
   head.append(el("h1", "entry-hanzi", entry.hanzi), readingsLine(entry));
-  const tags = el("div", "tags");
-  tags.append(el("span", "tag", entry.type));
-  if (entry.readingMark) tags.append(el("span", "tag", `${entry.readingMark}讀`));
-  if (entry.isSubstitute) tags.append(el("span", "tag", "替代字"));
-  head.append(tags);
+  const labels = [entry.type, entry.readingMark && `${entry.readingMark}讀`, entry.isSubstitute && "替代字"];
+  head.append(el("p", "entry-meta", labels.filter(Boolean).join(" · ")));
   const facts = factsList(entry);
   if (facts) head.append(facts);
   const relations = relationsList(entry.synonyms, entry.antonyms);
@@ -146,8 +138,9 @@ export function entryView(entry) {
   article.append(head);
 
   if (entry.senses?.length) {
-    const list = el("ol", entry.senses.length > 1 ? "senses numbered" : "senses");
-    for (const sense of entry.senses) list.append(senseItem(sense));
+    const list = el("ol", "senses");
+    const isNumbered = entry.senses.length > 1;
+    entry.senses.forEach((sense, i) => list.append(senseItem(sense, isNumbered ? i + 1 : null)));
     article.append(list);
   } else if (entry.type === "臺華共同詞") {
     article.append(el("p", "empty-note", "臺華共同詞：意思佮華語相仝。"));

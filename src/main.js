@@ -7,7 +7,7 @@ import { INDEX_PATH, bucketOf, shardPath } from "./data-paths.js";
 const SUGGEST_LIMIT = 10;
 const RESULTS_LIMIT = 200;
 const DEBOUNCE_MS = 100;
-const SITE_TITLE = "教典搜揣";
+const SITE_TITLE = "教典鬥搜揣";
 
 const input = document.getElementById("q");
 const form = input.form;
@@ -66,7 +66,7 @@ async function showResults(query) {
   try {
     const loaded = await loadEngine();
     if (seq !== navSeq) return;
-    show(resultsView(query, loaded.query(query, { limit: RESULTS_LIMIT }), RESULTS_LIMIT), { title });
+    show(resultsView(query, loaded.query(query, { limit: RESULTS_LIMIT })), { title });
   } catch (err) {
     if (seq !== navSeq) return;
     console.warn("index.load.failed", err.message);
