@@ -20,8 +20,8 @@ The search engine and headword index come from
 ## Development
 
 ```bash
-git clone https://github.com/taigikeyboard/kautian-website.git
-cd kautian-website
+git clone https://github.com/taigikeyboard/kautian-mirror.git
+cd kautian-mirror
 make init      # submodule + its taigi-converter (skips the unused ebird reference)
 make install
 make audio     # optional: MOE word mp3 → dist/audio/ (300 MB download, cached in .cache/)

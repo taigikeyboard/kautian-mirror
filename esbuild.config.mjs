@@ -29,7 +29,7 @@ mkdirSync("dist/fonts", { recursive: true });
 cpSync("vendor/kautian-extension/vendor/taigi-converter/jf-openhuninn-2.1.ttf", "dist/fonts/jf-openhuninn-2.1.ttf");
 // app.js bundles the MIT-licensed extension engine; ship both license texts with it
 mkdirSync("dist/licenses", { recursive: true });
-cpSync("LICENSE", "dist/licenses/kautian-website.txt");
+cpSync("LICENSE", "dist/licenses/kautian-mirror.txt");
 cpSync("vendor/kautian-extension/LICENSE", "dist/licenses/kautian-extension.txt");
 
 if (process.argv.includes("--serve")) {
