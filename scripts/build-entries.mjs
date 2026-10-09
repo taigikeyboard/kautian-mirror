@@ -8,8 +8,9 @@
 //     poj: [reading] (only when some reading differs from tl), category,
 //     audio (dist/audio/ has its word mp3; run `npm run build:audio` first),
 //     altReadings: [[kind, [tl]]], variants: [hanzi],
-//     seeAlso: [[entryId, label]] (又見音: other entries with the same hanzi, label from source fields),
-//     synonyms/antonyms: [[entryId | null, hanzi, tl?]] (tl of the linked entry, as the official site shows),
+//     seeAlso: [[entryId, label]] (又見音: other entries with the same hanzi),
+//     dialectReadings: [[accent, [tl]]] (語音差異, sheet column order; empty accents dropped),
+//     synonyms/antonyms: [[entryId | null, label]] (linked: entryLabel of the target; unlinked: hanzi),
 //     senses: [{ pos, definition, examples: [[hanzi, tl, mandarin]], synonyms, antonyms }] }
 // Relation targets whose entry is not published (近反義詞不單列詞目者) keep their
 // text but get entryId null, so the UI never links to a missing entry.
@@ -76,6 +77,7 @@ export function buildEntries(sheets) {
       category: r[4] || "",
       altReadings: [],
       seeAlso: [],
+      dialectReadings: [],
       variants: [],
       synonyms: [],
       antonyms: [],
@@ -133,25 +135,45 @@ export function buildEntries(sheets) {
       if (entry) addRelation(entry[key], linkableId(Number(r[2])), r[3]);
     }
   }
+  // 語音差異: keyed by entry id; the header row names the accent columns
+  const [dialectHeader = [], ...dialectRows] = sheets["語音差異"] || [];
+  const accents = dialectHeader.slice(2);
+  for (const r of dialectRows) {
+    const entry = entries.get(Number(r[0]));
+    if (!entry) continue;
+    // a cell lists several readings as "moo,mn̂g"; the official table gives each its own row
+    entry.dialectReadings = accents
+      .map((accent, i) => [accent, splitDialectReadings(r[i + 2])])
+      .filter(([, readings]) => readings.length);
+  }
   addSeeAlso(entries);
-  addRelationReadings(entries);
+  labelLinkedRelations(entries);
   return entries;
 }
 
-// The official site lists linked synonyms/antonyms with their reading (傷本 siong-pún);
-// unlinked targets have no entry, so they stay hanzi-only there too.
-function addRelationReadings(entries) {
+const splitDialectReadings = (cell = "") => cell.split(",").map((s) => s.trim()).filter(Boolean);
+
+// How the official site labels a link to an entry, marks included:
+// 人【替】 lâng, 頭 【白】thâu, 傷本 siong-pún
+function entryLabel(entry) {
+  const hanzi = entry.isSubstitute ? `${entry.hanzi}${SUBSTITUTE_MARK}` : entry.hanzi;
+  const mark = entry.readingMark ? `【${entry.readingMark}】` : "";
+  return `${hanzi} ${mark}${entry.tl.join("/")}`;
+}
+
+// Linked synonyms/antonyms carry the target's label; unlinked targets have no entry,
+// so they stay hanzi-only there too.
+function labelLinkedRelations(entries) {
   for (const entry of entries.values()) {
     for (const list of [entry.synonyms, entry.antonyms, ...entry.senses.flatMap((s) => [s.synonyms, s.antonyms])]) {
       for (const relation of list) {
-        if (relation[0] !== null) relation.push(entries.get(relation[0]).tl.join("/"));
+        if (relation[0] !== null) relation[1] = entryLabel(entries.get(relation[0]));
       }
     }
   }
 }
 
-// 又見音: every other published entry sharing this hanzi, labelled like the source
-// data writes it (人【替】 lâng, 九 【文】kiú)
+// 又見音: every other published entry sharing this hanzi
 function addSeeAlso(entries) {
   const byHanzi = new Map();
   for (const entry of entries.values()) {
@@ -161,10 +183,7 @@ function addSeeAlso(entries) {
     if (group.length < 2) continue;
     for (const entry of group) {
       for (const other of group) {
-        if (other === entry) continue;
-        const hanzi = other.isSubstitute ? `${other.hanzi}${SUBSTITUTE_MARK}` : other.hanzi;
-        const mark = other.readingMark ? `【${other.readingMark}】` : "";
-        entry.seeAlso.push([other.id, `${hanzi} ${mark}${other.tl.join("/")}`]);
+        if (other !== entry) entry.seeAlso.push([other.id, entryLabel(other)]);
       }
     }
   }
@@ -190,7 +209,7 @@ export function shardEntries(entries) {
 export const serializeShard = (shard) => JSON.stringify(shard, omitEmpty);
 
 const SHEETS = [
-  "詞目", "義項", "例句", ...ALT_READING_SHEETS, "異用字",
+  "詞目", "義項", "例句", ...ALT_READING_SHEETS, "異用字", "語音差異",
   ...Object.values(RELATION_SHEETS).flat().map(([sheet]) => sheet),
 ];
 

@@ -66,12 +66,12 @@ function definitionNode(text) {
 
 function relationLinks(relations) {
   const dd = el("dd");
-  for (const [entryId, hanzi, tl] of relations) {
+  for (const [entryId, label] of relations) {
     if (entryId === null) {
-      dd.append(el("span", "", hanzi));
+      dd.append(el("span", "", label));
       continue;
     }
-    const link = el("a", "", tl ? `${hanzi} ${tl}` : hanzi);
+    const link = el("a", "", label);
     link.href = entryHref(entryId);
     dd.append(link);
   }
@@ -99,6 +99,28 @@ function readingsLine(entry) {
   return line;
 }
 
+// 語音差異: accent → reading rows, as the official table lists them
+function dialectTable(dialectReadings) {
+  const dd = el("dd");
+  const table = el("table", "dialects");
+  const body = el("tbody");
+  for (const [accent, readings] of dialectReadings) {
+    readings.forEach((tl, i) => {
+      const row = el("tr");
+      if (i === 0) {
+        const th = el("th", "", accent);
+        th.rowSpan = readings.length;
+        row.append(th);
+      }
+      row.append(el("td", "", tl));
+      body.append(row);
+    });
+  }
+  table.append(body);
+  dd.append(table);
+  return dd;
+}
+
 // facts: [term, text | <dd>] rows, in the official site's order
 function factsList(entry) {
   const facts = (entry.altReadings || []).map(([kind, readings]) => [kind, readings.join("、")]);
@@ -108,6 +130,7 @@ function factsList(entry) {
   if (entry.category) facts.push([entry.type === "附錄" ? "附錄" : "分類", entry.category.replaceAll(",", "、")]);
   if (entry.synonyms?.length) facts.push(["近義", relationLinks(entry.synonyms)]);
   if (entry.antonyms?.length) facts.push(["反義", relationLinks(entry.antonyms)]);
+  if (entry.dialectReadings?.length) facts.push(["語音差異", dialectTable(entry.dialectReadings)]);
   if (!facts.length) return null;
   const dl = el("dl", "facts");
   for (const [term, value] of facts) {

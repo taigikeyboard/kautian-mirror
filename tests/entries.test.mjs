@@ -54,10 +54,10 @@ test("buildEntries_examples_joinBySenseInListedOrder", () => {
 
 test("buildEntries_relations_linkPublishedTargetsOnlyAndDeduplicate", () => {
   const entry = buildEntries(fixture).get(1);
-  // linked targets carry the target entry's readings (official: 傷本 siong-pún)
-  assert.deepEqual(entry.senses[1].synonyms, [[49, "八", "peh/pueh"]]);
+  // linked targets use the target's label, marks included (official: 頭 白 thâu)
+  assert.deepEqual(entry.senses[1].synonyms, [[49, "八 【白】peh/pueh"]]);
   assert.deepEqual(entry.senses[0].antonyms, [[null, "刀仔"]]);
-  assert.deepEqual(entry.synonyms, [[49, "八", "peh/pueh"]]);
+  assert.deepEqual(entry.synonyms, [[49, "八 【白】peh/pueh"]]);
   assert.deepEqual(entry.variants, ["蜀"]);
 });
 
@@ -75,6 +75,17 @@ test("buildEntries_sameHanzi_linkedAsSeeAlsoWithSourceMarks", () => {
   assert.deepEqual(entries.get(45).seeAlso, [[46, "人【替】 lâng"], [21807, "人 Jîn/Lîn"]]);
   assert.deepEqual(entries.get(46).seeAlso, [[45, "人 jîn/lîn"], [21807, "人 Jîn/Lîn"]]);
   assert.deepEqual(entries.get(42).seeAlso, []);
+});
+
+test("buildEntries_dialectSheet_readingsPerAccentInColumnOrder", () => {
+  const entries = buildEntries({
+    ...fixture,
+    語音差異: [["詞目id", "漢字", "鹿港偏泉腔", "宜蘭偏漳腔", "臺中偏漳腔"],
+      ["49", "八", "pueh", "moo,mn̂g", ""], ["50", "刀仔", "to", "to", "to"]],
+  });
+  // trace: official 毛 page splits "moo,mn̂g" into two rows; 頭 omits its empty 臺中偏漳腔
+  assert.deepEqual(entries.get(49).dialectReadings, [["鹿港偏泉腔", ["pueh"]], ["宜蘭偏漳腔", ["moo", "mn̂g"]]]);
+  assert.deepEqual(entries.get(1).dialectReadings, []);
 });
 
 test("serializeShard_emptyFields_omittedButTupleNullsKept", () => {

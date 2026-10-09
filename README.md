@@ -1,4 +1,4 @@
-# 教典鬥搜揣｜非官方教典備份
+# 教典鬥搜揣｜非官方教典備份網站
 
 A clean, standalone search site for the Ministry of Education's
 [Dictionary of Frequently-Used Taiwan Taiwanese](https://sutian.moe.edu.tw/) (臺灣台語常用詞辭典).
@@ -9,7 +9,7 @@ Search and entry pages run entirely from static files — no dependency on the o
 - One search box with live suggestions: Hanzi, Tâi-lô (tone marks, tone numbers, or toneless),
   Pe̍h-ōe-jī, Zhuyin keyboard input, Taiwanese Phonetic Symbols, abbreviations, raw regex
 - Entry pages: readings (TL + auto-converted POJ), senses, examples, alternative readings,
-  variant characters, synonyms and antonyms, word audio (fetched only when the speaker button is clicked)
+  variant characters, 又見音 (same-hanzi entries), synonyms and antonyms, 語音差異 (accent readings), word audio (fetched only when the speaker button is clicked)
 - Shareable URLs: `?q=<query>` for a result list, `?id=<entry id>` for an entry (same ids as the
   official site)
 

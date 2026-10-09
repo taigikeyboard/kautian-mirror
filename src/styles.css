@@ -243,6 +243,9 @@ h1 {
 .facts dt, .relations dt { color: var(--secondary); font-size: 15px; }
 .facts dd { overflow-wrap: anywhere; }
 .facts dd:has(a) { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
+.dialects { border-collapse: collapse; }
+.dialects th { padding: 0 1.5rem 0.25rem 0; color: var(--secondary); font-size: 15px; font-weight: 400; text-align: left; vertical-align: top; }
+.dialects td { padding: 0 0 0.25rem; }
 .relations dd { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
 .relations span { color: var(--secondary); }
 
@@ -267,13 +270,14 @@ h1 {
   letter-spacing: -0.01em;
   text-align: center;
 }
+.footer p { margin: 0.25rem 0; }
 .footer a { color: var(--secondary); transition: color 0.2s; }
 .footer a:hover { color: var(--text); text-decoration: none; }
 
 @media (max-width: 560px) {
   body { padding: 2.5rem 1rem 1.5rem; }
   .card { padding: 1.25rem; }
-  h1 { font-size: 1.5rem; }
+  h1 { font-size: 1.375rem; }
   .entry-hanzi { font-size: 2rem; }
   .facts, .relations { grid-template-columns: 4.5rem 1fr; }
 }
