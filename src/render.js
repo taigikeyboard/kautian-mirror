@@ -87,7 +87,11 @@ function relationsList(synonyms = [], antonyms = []) {
 
 function readingsLine(entry) {
   const line = el("p", "readings");
-  line.append(el("span", "reading-tl", entry.tl.join(" / ")));
+  const tl = el("span", "reading-tl");
+  // source marks shown verbatim, where the dictionary data puts them
+  if (entry.readingMark) tl.append(el("span", "mark", `【${entry.readingMark}】`));
+  tl.append(entry.tl.join(" / "));
+  line.append(tl);
   if (entry.poj) line.append(el("span", "reading-poj", entry.poj.join(" / ")));
   return line;
 }
@@ -128,9 +132,9 @@ function senseItem(sense, number) {
 export function entryView(entry) {
   const article = el("article", "entry");
   const head = el("header", "entry-head");
-  head.append(el("h1", "entry-hanzi", entry.hanzi), readingsLine(entry));
-  const labels = [entry.type, entry.readingMark && `${entry.readingMark}讀`, entry.isSubstitute && "替代字"];
-  head.append(el("p", "entry-meta", labels.filter(Boolean).join(" · ")));
+  const hanzi = el("h1", "entry-hanzi", entry.hanzi);
+  if (entry.isSubstitute) hanzi.append(el("span", "mark", "【替】"));
+  head.append(hanzi, readingsLine(entry), el("p", "entry-meta", entry.type));
   const facts = factsList(entry);
   if (facts) head.append(facts);
   const relations = relationsList(entry.synonyms, entry.antonyms);
