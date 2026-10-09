@@ -9,7 +9,7 @@ const SUGGEST_LIMIT = 10;
 const RESULTS_LIMIT = 200;
 const DEBOUNCE_MS = 100;
 const SITE_TITLE = "教典鬥搜揣";
-const HOME_TITLE = `${SITE_TITLE} - 教典備份網站`;
+const HOME_TITLE = `${SITE_TITLE}｜教典備份網站`;
 
 const input = document.getElementById("q");
 const form = input.form;
@@ -61,7 +61,7 @@ function show(node, { title = HOME_TITLE } = {}) {
 
 async function showResults(query) {
   const seq = ++navSeq;
-  const title = `${query} — ${SITE_TITLE}`;
+  const title = `${query}｜${SITE_TITLE}`;
   input.value = query;
   show(statusView("載入中…"), { title });
   try {
@@ -86,7 +86,7 @@ async function showEntry(rawId) {
       show(statusView("揣無這个詞目。"));
       return;
     }
-    show(entryView(entry), { title: `${entry.hanzi} ${entry.tl.join("/")} — ${SITE_TITLE}` });
+    show(entryView(entry), { title: `${entry.hanzi} ${entry.tl.join("/")}｜${SITE_TITLE}` });
     window.scrollTo(0, 0);
   } catch (err) {
     if (seq !== navSeq) return;
