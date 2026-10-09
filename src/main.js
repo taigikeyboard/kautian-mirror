@@ -52,8 +52,7 @@ function loadEntry(id) {
 // --- views; navSeq drops results of a navigation that has been superseded ---
 let navSeq = 0;
 
-function show(node, { home = false, title = SITE_TITLE } = {}) {
-  document.body.classList.toggle("home", home);
+function show(node, { title = SITE_TITLE } = {}) {
   document.title = title;
   view.replaceChildren(...(node ? [node] : []));
 }
@@ -102,7 +101,7 @@ function route() {
   if (query) return showResults(query);
   navSeq++;
   input.value = "";
-  show(null, { home: true });
+  show(null);
 }
 
 function navigate(href) {
@@ -168,6 +167,6 @@ document.addEventListener("click", (ev) => {
 window.addEventListener("popstate", route);
 route();
 // warm the search index while the home page sits idle, so the first keystroke is instant
-if (document.body.classList.contains("home")) {
+if (!location.search) {
   (window.requestIdleCallback ?? setTimeout)(() => loadEngine().catch(() => {}));
 }

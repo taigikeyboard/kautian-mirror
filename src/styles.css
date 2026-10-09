@@ -50,7 +50,8 @@
 
 * { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+/* reserve the scrollbar so long pages don't shift the centered layout sideways */
+html { -webkit-text-size-adjust: 100%; scrollbar-gutter: stable; }
 
 body {
   margin: 0;
@@ -78,7 +79,6 @@ a:hover { text-decoration: underline; }
   flex-direction: column;
   align-items: center;
 }
-body.home .masthead { margin-top: 18vh; margin-top: 18dvh; }
 
 h1 {
   margin: 0;
@@ -238,7 +238,6 @@ h1 {
 
 @media (max-width: 560px) {
   body { padding: 2.5rem 1rem 1.5rem; }
-  body.home .masthead { margin-top: 14vh; margin-top: 14dvh; }
   .card { padding: 1.25rem; }
   .entry-hanzi { font-size: 2rem; }
   .facts, .relations { grid-template-columns: 4.5rem 1fr; }
