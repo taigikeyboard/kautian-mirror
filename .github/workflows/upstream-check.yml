@@ -1,0 +1,29 @@
+name: upstream-check
+
+# Weekly: open an issue when MOE publishes a kautian.ods that differs from the one we build from.
+on:
+  schedule:
+    - cron: "0 1 * * 1" # Mondays 09:00 Taiwan time
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # only the extension's kautian.ods is compared; its nested submodules aren't needed
+      - name: Init extension submodule
+        run: git submodule update --init vendor/kautian-extension
+
+      - name: Compare with MOE kautian.ods
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: bash scripts/check-upstream.sh
