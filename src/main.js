@@ -9,7 +9,7 @@ const SUGGEST_LIMIT = 10;
 const RESULTS_LIMIT = 200;
 const DEBOUNCE_MS = 100;
 const SITE_TITLE = "教典鬥搜揣";
-const HOME_TITLE = `${SITE_TITLE}｜教典備份網站`;
+const HOME_TITLE = `${SITE_TITLE}｜非官方教典備份`;
 
 const input = document.getElementById("q");
 const form = input.form;
