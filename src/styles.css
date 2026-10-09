@@ -221,7 +221,6 @@ h1 {
 .ex-roman, .ex-zh { color: var(--secondary); font-size: 15px; }
 .sense .relations { margin-top: 0.75rem; }
 
-.empty-note { margin: 1.25rem 0 0; color: var(--secondary); font-size: 15px; }
 
 /* --- footer --- */
 .footer {

@@ -23,6 +23,7 @@ mkdirSync(dirname(join("dist", INDEX_PATH)), { recursive: true });
 cpSync(VENDOR_INDEX_PATH, join("dist", INDEX_PATH));
 cpSync("src/index.html", "dist/index.html");
 cpSync("src/styles.css", "dist/styles.css");
+cpSync("src/favicon.svg", "dist/favicon.svg");
 // same typeface as taigikeyboard.tw/taigi-converter (jf open 粉圓, SIL OFL 1.1)
 mkdirSync("dist/fonts", { recursive: true });
 cpSync("vendor/kautian-extension/vendor/taigi-converter/jf-openhuninn-2.1.ttf", "dist/fonts/jf-openhuninn-2.1.ttf");

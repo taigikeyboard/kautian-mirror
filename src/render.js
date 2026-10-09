@@ -142,8 +142,6 @@ export function entryView(entry) {
     const isNumbered = entry.senses.length > 1;
     entry.senses.forEach((sense, i) => list.append(senseItem(sense, isNumbered ? i + 1 : null)));
     article.append(list);
-  } else if (entry.type === "臺華共同詞") {
-    article.append(el("p", "empty-note", "臺華共同詞：意思佮華語相仝。"));
   }
   return article;
 }

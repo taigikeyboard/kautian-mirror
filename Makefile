@@ -1,11 +1,15 @@
-.PHONY: all init install build serve test clean
+.PHONY: all init hooks install build serve test clean
 
 all: build
 
 # submodule + only the converter it needs (skips the unused ebird reference)
-init:
+init: hooks
 	git submodule update --init vendor/kautian-extension
 	git -C vendor/kautian-extension submodule update --init vendor/taigi-converter
+
+# gitleaks pre-commit hook (needs `brew install gitleaks`)
+hooks:
+	git config core.hooksPath .githooks
 
 install:
 	npm install
