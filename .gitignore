@@ -1,0 +1,11 @@
+# OS / editor
+.DS_Store
+
+# Claude Code local settings
+.claude
+
+# dependencies
+node_modules/
+
+# build artifacts (regenerate with `npm run build`)
+dist/

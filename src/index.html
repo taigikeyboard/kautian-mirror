@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="nan-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="教育部《臺灣台語常用詞辭典》快速搜尋。支援漢字、台羅、白話字、注音符號、方音符號。">
+  <title>教典搜揣</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body class="home">
+  <header class="masthead">
+    <a class="wordmark" href="./" data-nav>教典</a>
+    <p class="tagline">臺灣台語常用詞辭典</p>
+  </header>
+
+  <main>
+    <form class="search" role="search" autocomplete="off">
+      <svg class="search-icon" viewBox="0 0 20 20" aria-hidden="true">
+        <circle cx="8.5" cy="8.5" r="5.75" fill="none" stroke="currentColor" stroke-width="1.75"/>
+        <path d="M13 13l4.25 4.25" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+      </svg>
+      <input id="q" name="q" type="search" placeholder="漢字、台羅、白話字、注音"
+             aria-label="搜揣" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="search">
+      <div id="suggest" class="suggest" role="listbox" aria-label="建議" hidden></div>
+    </form>
+
+    <section id="view" class="view" aria-live="polite"></section>
+  </main>
+
+  <footer class="footer">
+    <p>資料來源：教育部《<a href="https://sutian.moe.edu.tw/" rel="noopener">臺灣台語常用詞辭典</a>》，依
+      <a href="https://creativecommons.org/licenses/by-nd/3.0/tw/" rel="noopener">CC BY-ND 3.0 TW</a> 授權。</p>
+    <p>非官方網站，與教育部無關。白話字由台羅自動轉換。</p>
+  </footer>
+</body>
+</html>
