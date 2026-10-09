@@ -6,19 +6,20 @@
 //   { id, type, hanzi, isSubstitute (【替】 substitute character),
 //     readingMark (文/白/俗 from a 【文】-style reading prefix), tl: [reading],
 //     poj: [reading] (only when some reading differs from tl), category,
+//     audio (dist/audio/ has its word mp3; run `npm run build:audio` first),
 //     altReadings: [[kind, [tl]]], variants: [hanzi],
 //     seeAlso: [[entryId, label]] (又見音: other entries with the same hanzi, label from source fields),
 //     synonyms/antonyms: [[entryId | null, hanzi, tl?]] (tl of the linked entry, as the official site shows),
 //     senses: [{ pos, definition, examples: [[hanzi, tl, mandarin]], synonyms, antonyms }] }
 // Relation targets whose entry is not published (近反義詞不單列詞目者) keep their
 // text but get entryId null, so the UI never links to a missing entry.
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { readZipEntry, sheetRows } from "../vendor/kautian-extension/scripts/ods.mjs";
 import { convert } from "../vendor/kautian-extension/vendor/taigi-converter/src/index.js";
-import { ENTRIES_DIR, bucketOf, shardPath } from "../src/data-paths.js";
+import { ENTRIES_DIR, audioPath, bucketOf, shardPath } from "../src/data-paths.js";
 
 // Same published entry types as the extension's search index (build-data.mjs)
 export const PUBLISHED_TYPES = new Set(["主詞目", "單字不成詞者", "臺華共同詞", "附錄"]);
@@ -208,6 +209,7 @@ function main() {
   const outDir = join(distDir, ENTRIES_DIR);
   const t0 = performance.now();
   const entries = buildEntries(readSheets(ODS_PATH));
+  for (const entry of entries.values()) entry.audio = existsSync(join(distDir, audioPath(entry.id)));
   const buckets = shardEntries(entries);
 
   rmSync(outDir, { recursive: true, force: true });
@@ -224,8 +226,9 @@ function main() {
     largestGzip = Math.max(largestGzip, size);
   }
   const withoutSenses = [...entries.values()].filter((e) => !e.senses.length).length;
+  const withAudio = [...entries.values()].filter((e) => e.audio).length;
   console.log([
-    `entries: ${entries.size} (without senses: ${withoutSenses}) in ${buckets.size} shards`,
+    `entries: ${entries.size} (without senses: ${withoutSenses}, with audio: ${withAudio}) in ${buckets.size} shards`,
     `raw ${(rawBytes / 1048576).toFixed(2)} MB, gzip ${(gzipBytes / 1048576).toFixed(2)} MB, ` +
       `largest shard gzip ${(largestGzip / 1024).toFixed(0)} KB`,
     `build time: ${(performance.now() - t0).toFixed(0)} ms`,

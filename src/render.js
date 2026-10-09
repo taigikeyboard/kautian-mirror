@@ -1,4 +1,5 @@
 // DOM builders for result rows, the result list, and entry pages (textContent only).
+import { playButton } from "./audio.js";
 
 export const entryHref = (id) => `?id=${id}`;
 export const searchHref = (query) => `?q=${encodeURIComponent(query)}`;
@@ -91,6 +92,8 @@ function readingsLine(entry) {
   // source marks shown verbatim, where the dictionary data puts them
   if (entry.readingMark) tl.append(el("span", "mark", `【${entry.readingMark}】`));
   tl.append(entry.tl.join(" / "));
+  // official site places the play icon right after the romanization
+  if (entry.audio) tl.append(playButton(entry.id));
   line.append(tl);
   if (entry.poj) line.append(el("span", "reading-poj", entry.poj.join(" / ")));
   return line;

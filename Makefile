@@ -1,4 +1,4 @@
-.PHONY: all init hooks install build serve test clean
+.PHONY: all init hooks install audio build serve test clean
 
 all: build
 
@@ -13,6 +13,10 @@ hooks:
 
 install:
 	npm install
+
+# MOE word audio → dist/audio/ (300 MB download, cached in .cache/); run before `make build`
+audio:
+	npm run build:audio
 
 # search index (extension build-data) → entry shards → bundle + static files into dist/
 build:

@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build:index": "node vendor/kautian-extension/scripts/build-data.mjs",
+    "build:audio": "node scripts/fetch-audio.mjs",
     "build:entries": "node scripts/build-entries.mjs",
     "build:site": "node esbuild.config.mjs",
     "build": "npm run build:index && npm run build:entries && npm run build:site",

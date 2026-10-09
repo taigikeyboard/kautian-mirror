@@ -60,12 +60,8 @@ body {
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-/* --- theme toggle (top right) --- */
-.theme-toggle {
-  position: fixed;
-  top: 0.75rem;
-  right: 0.75rem;
-  z-index: 20;
+/* --- round 36px icon buttons: theme toggle, word-audio play --- */
+.theme-toggle, .play {
   display: grid;
   place-items: center;
   width: 36px;
@@ -74,12 +70,21 @@ a:hover { text-decoration: underline; }
   border: 0;
   border-radius: 50%;
   background: none;
-  color: var(--secondary);
   cursor: pointer;
   transition: color 0.2s, background 0.2s;
 }
-.theme-toggle:hover { color: var(--text); background: var(--hover); }
-.theme-toggle:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ring); }
+.theme-toggle:hover, .play:hover { background: var(--hover); }
+.theme-toggle:focus-visible, .play:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ring); }
+
+/* --- theme toggle (top right) --- */
+.theme-toggle {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 20;
+  color: var(--secondary);
+}
+.theme-toggle:hover { color: var(--text); }
 .theme-toggle svg { width: 18px; height: 18px; }
 /* show the icon of the theme a click switches to */
 .theme-toggle .icon-sun { display: none; }
@@ -217,6 +222,15 @@ h1 {
 .reading-poj { color: var(--secondary); }
 .mark { color: var(--secondary); font-weight: 400; font-size: 0.6em; letter-spacing: 0; }
 .reading-tl .mark { font-size: 0.8em; }
+/* inline in the reading line; negative margin keeps the line height */
+.play {
+  display: inline-grid;
+  margin: -6px 0 -6px 0.25rem;
+  color: var(--accent);
+  vertical-align: middle;
+}
+.play svg { width: 20px; height: 20px; }
+.play.is-error { color: var(--secondary); }
 .entry-meta { margin: 0.5rem 0 0; color: var(--secondary); font-size: 13px; }
 
 /* label/value rows, like the converter's result rows */

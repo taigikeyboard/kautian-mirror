@@ -21,3 +21,6 @@ dist/
 credentials*.json
 client_secret*.json
 token*.json
+
+# downloaded MOE audio zip (npm run build:audio)
+.cache/
