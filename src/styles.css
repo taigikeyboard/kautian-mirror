@@ -273,6 +273,7 @@ h1 {
 @media (max-width: 560px) {
   body { padding: 2.5rem 1rem 1.5rem; }
   .card { padding: 1.25rem; }
+  h1 { font-size: 1.5rem; }
   .entry-hanzi { font-size: 2rem; }
   .facts, .relations { grid-template-columns: 4.5rem 1fr; }
 }

@@ -1,4 +1,4 @@
-# 教典鬥搜揣
+# 教典鬥搜揣｜非官方教典備份
 
 A clean, standalone search site for the Ministry of Education's
 [Dictionary of Frequently-Used Taiwan Taiwanese](https://sutian.moe.edu.tw/) (臺灣台語常用詞辭典).
