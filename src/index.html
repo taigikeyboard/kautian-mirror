@@ -5,12 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <meta name="description" content="教育部《臺灣台語常用詞辭典》搜尋。支援漢字、台羅、白話字、注音符號、方音符號。">
-  <title>教典鬥搜揣</title>
+  <title>教典鬥搜揣 - 教典備份網站</title>
+  <script>
+    // apply a pinned theme before first paint (see src/theme.js)
+    try {
+      const theme = localStorage.getItem("theme");
+      if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+    } catch {}
+  </script>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
   <script type="module" src="app.js"></script>
 </head>
 <body>
+  <button class="theme-toggle" type="button" aria-label="切換深淺色模式" title="切換深淺色模式">
+    <svg class="icon-moon" viewBox="0 0 20 20" aria-hidden="true">
+      <path d="M16.5 12.2A7 7 0 0 1 7.8 3.5a7 7 0 1 0 8.7 8.7z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    </svg>
+    <svg class="icon-sun" viewBox="0 0 20 20" aria-hidden="true">
+      <circle cx="10" cy="10" r="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M10 1.75v2M10 16.25v2M1.75 10h2M16.25 10h2M4.17 4.17l1.41 1.41M14.42 14.42l1.41 1.41M4.17 15.83l1.41-1.41M14.42 5.58l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+  </button>
   <header class="masthead">
     <h1><a class="wordmark" href="./" data-nav>教典鬥搜揣</a></h1>
     <form class="search" role="search" autocomplete="off">

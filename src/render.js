@@ -65,12 +65,12 @@ function definitionNode(text) {
 
 function relationLinks(relations) {
   const dd = el("dd");
-  for (const [entryId, hanzi] of relations) {
+  for (const [entryId, hanzi, tl] of relations) {
     if (entryId === null) {
       dd.append(el("span", "", hanzi));
       continue;
     }
-    const link = el("a", "", hanzi);
+    const link = el("a", "", tl ? `${hanzi} ${tl}` : hanzi);
     link.href = entryHref(entryId);
     dd.append(link);
   }
@@ -101,7 +101,10 @@ function factsList(entry) {
   const facts = (entry.altReadings || []).map(([kind, readings]) => [kind, readings.join("、")]);
   if (entry.variants?.length) facts.push(["異用字", entry.variants.join("、")]);
   if (entry.seeAlso?.length) facts.push(["又見音", relationLinks(entry.seeAlso)]);
-  if (entry.category) facts.push(["分類", entry.category.replaceAll(",", "、")]);
+  // 附錄 entries carry their appendix listing in the category column; the official site labels it 附錄
+  if (entry.category) facts.push([entry.type === "附錄" ? "附錄" : "分類", entry.category.replaceAll(",", "、")]);
+  if (entry.synonyms?.length) facts.push(["近義", relationLinks(entry.synonyms)]);
+  if (entry.antonyms?.length) facts.push(["反義", relationLinks(entry.antonyms)]);
   if (!facts.length) return null;
   const dl = el("dl", "facts");
   for (const [term, value] of facts) {
@@ -147,8 +150,7 @@ export function entryView(entry) {
     entry.senses.forEach((sense, i) => list.append(senseItem(sense, isNumbered ? i + 1 : null)));
     article.append(list);
   }
-  for (const block of [factsList(entry), relationsList(entry.synonyms, entry.antonyms)]) {
-    if (block) article.append(block);
-  }
+  const facts = factsList(entry);
+  if (facts) article.append(facts);
   return article;
 }

@@ -12,40 +12,29 @@
     U+F900-FAFF, U+FF00-FFEF, U+20000-2FFFF;
 }
 
+/* Follows the system theme; the header toggle pins one via <html data-theme>. */
+:root { color-scheme: light dark; }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
 :root {
-  --bg: #f5f5f7;
-  --card: #ffffff;
-  --text: #1d1d1f;
-  --secondary: #86868b;
-  --border: #d2d2d7;
-  --field: #fafafa;
-  --hairline: #e8e8ed;
-  --hover: #f5f5f7;
-  --accent: #0071e3;
-  --ring: rgba(0, 113, 227, 0.15);
-  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
-  --menu-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --bg: light-dark(#f5f5f7, #000000);
+  --card: light-dark(#ffffff, #1c1c1e);
+  --text: light-dark(#1d1d1f, #f5f5f7);
+  --secondary: light-dark(#86868b, #98989d);
+  --border: light-dark(#d2d2d7, #3a3a3c);
+  --field: light-dark(#fafafa, #2c2c2e);
+  --hairline: light-dark(#e8e8ed, #38383a);
+  --hover: light-dark(#f5f5f7, #2c2c2e);
+  --accent: light-dark(#0071e3, #2997ff);
+  --ring: light-dark(rgba(0, 113, 227, 0.15), rgba(41, 151, 255, 0.25));
+  --card-shadow: 0 1px 3px light-dark(rgba(0, 0, 0, 0.04), transparent),
+    0 4px 12px light-dark(rgba(0, 0, 0, 0.03), transparent);
+  --menu-shadow: 0 4px 24px light-dark(rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.5));
 
   --font: "jf-openhuninn", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
     "Helvetica Neue", Helvetica, "PingFang TC", "Noto Sans TC", Arial, sans-serif;
   --measure: 760px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #000000;
-    --card: #1c1c1e;
-    --text: #f5f5f7;
-    --secondary: #98989d;
-    --border: #3a3a3c;
-    --field: #2c2c2e;
-    --hairline: #38383a;
-    --hover: #2c2c2e;
-    --accent: #2997ff;
-    --ring: rgba(41, 151, 255, 0.25);
-    --card-shadow: none;
-    --menu-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
-  }
 }
 
 * { box-sizing: border-box; }
@@ -70,6 +59,36 @@ body {
 
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
+
+/* --- theme toggle (top right) --- */
+.theme-toggle {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--secondary);
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+.theme-toggle:hover { color: var(--text); background: var(--hover); }
+.theme-toggle:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ring); }
+.theme-toggle svg { width: 18px; height: 18px; }
+/* show the icon of the theme a click switches to */
+.theme-toggle .icon-sun { display: none; }
+:root[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+:root[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle .icon-sun { display: block; }
+  :root:not([data-theme="light"]) .theme-toggle .icon-moon { display: none; }
+}
 
 /* --- title + search --- */
 .masthead {

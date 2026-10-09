@@ -8,7 +8,7 @@
 //     poj: [reading] (only when some reading differs from tl), category,
 //     altReadings: [[kind, [tl]]], variants: [hanzi],
 //     seeAlso: [[entryId, label]] (又見音: other entries with the same hanzi, label from source fields),
-//     synonyms/antonyms: [[entryId | null, hanzi]],
+//     synonyms/antonyms: [[entryId | null, hanzi, tl?]] (tl of the linked entry, as the official site shows),
 //     senses: [{ pos, definition, examples: [[hanzi, tl, mandarin]], synonyms, antonyms }] }
 // Relation targets whose entry is not published (近反義詞不單列詞目者) keep their
 // text but get entryId null, so the UI never links to a missing entry.
@@ -133,7 +133,20 @@ export function buildEntries(sheets) {
     }
   }
   addSeeAlso(entries);
+  addRelationReadings(entries);
   return entries;
+}
+
+// The official site lists linked synonyms/antonyms with their reading (傷本 siong-pún);
+// unlinked targets have no entry, so they stay hanzi-only there too.
+function addRelationReadings(entries) {
+  for (const entry of entries.values()) {
+    for (const list of [entry.synonyms, entry.antonyms, ...entry.senses.flatMap((s) => [s.synonyms, s.antonyms])]) {
+      for (const relation of list) {
+        if (relation[0] !== null) relation.push(entries.get(relation[0]).tl.join("/"));
+      }
+    }
+  }
 }
 
 // 又見音: every other published entry sharing this hanzi, labelled like the source

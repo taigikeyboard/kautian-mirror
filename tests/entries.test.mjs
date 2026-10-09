@@ -54,9 +54,10 @@ test("buildEntries_examples_joinBySenseInListedOrder", () => {
 
 test("buildEntries_relations_linkPublishedTargetsOnlyAndDeduplicate", () => {
   const entry = buildEntries(fixture).get(1);
-  assert.deepEqual(entry.senses[1].synonyms, [[49, "八"]]);
+  // linked targets carry the target entry's readings (official: 傷本 siong-pún)
+  assert.deepEqual(entry.senses[1].synonyms, [[49, "八", "peh/pueh"]]);
   assert.deepEqual(entry.senses[0].antonyms, [[null, "刀仔"]]);
-  assert.deepEqual(entry.synonyms, [[49, "八"]]);
+  assert.deepEqual(entry.synonyms, [[49, "八", "peh/pueh"]]);
   assert.deepEqual(entry.variants, ["蜀"]);
 });
 

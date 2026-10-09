@@ -3,11 +3,13 @@ import { createEngine } from "../vendor/kautian-extension/src/search/engine.js";
 import { createSuggest } from "./suggest.js";
 import { entryView, resultsView, searchHref, statusView } from "./render.js";
 import { INDEX_PATH, bucketOf, shardPath } from "./data-paths.js";
+import { initThemeToggle } from "./theme.js";
 
 const SUGGEST_LIMIT = 10;
 const RESULTS_LIMIT = 200;
 const DEBOUNCE_MS = 100;
 const SITE_TITLE = "教典鬥搜揣";
+const HOME_TITLE = `${SITE_TITLE} - 教典備份網站`;
 
 const input = document.getElementById("q");
 const form = input.form;
@@ -52,7 +54,7 @@ function loadEntry(id) {
 // --- views; navSeq drops results of a navigation that has been superseded ---
 let navSeq = 0;
 
-function show(node, { title = SITE_TITLE } = {}) {
+function show(node, { title = HOME_TITLE } = {}) {
   document.title = title;
   view.replaceChildren(...(node ? [node] : []));
 }
@@ -164,6 +166,7 @@ document.addEventListener("click", (ev) => {
   navigate(href);
 });
 
+initThemeToggle(document.querySelector(".theme-toggle"));
 window.addEventListener("popstate", route);
 route();
 // warm the search index while the home page sits idle, so the first keystroke is instant
