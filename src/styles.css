@@ -209,6 +209,7 @@ h1 {
 }
 .facts dt, .relations dt { color: var(--secondary); font-size: 15px; }
 .facts dd { overflow-wrap: anywhere; }
+.facts dd:has(a) { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
 .relations dd { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
 .relations span { color: var(--secondary); }
 

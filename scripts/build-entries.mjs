@@ -7,6 +7,7 @@
 //     readingMark (文/白/俗 from a 【文】-style reading prefix), tl: [reading],
 //     poj: [reading] (only when some reading differs from tl), category,
 //     altReadings: [[kind, [tl]]], variants: [hanzi],
+//     seeAlso: [[entryId, label]] (又見音: other entries with the same hanzi, label from source fields),
 //     synonyms/antonyms: [[entryId | null, hanzi]],
 //     senses: [{ pos, definition, examples: [[hanzi, tl, mandarin]], synonyms, antonyms }] }
 // Relation targets whose entry is not published (近反義詞不單列詞目者) keep their
@@ -73,6 +74,7 @@ export function buildEntries(sheets) {
       poj: poj.some((reading, i) => reading && reading !== tl[i]) ? poj : [],
       category: r[4] || "",
       altReadings: [],
+      seeAlso: [],
       variants: [],
       synonyms: [],
       antonyms: [],
@@ -130,7 +132,28 @@ export function buildEntries(sheets) {
       if (entry) addRelation(entry[key], linkableId(Number(r[2])), r[3]);
     }
   }
+  addSeeAlso(entries);
   return entries;
+}
+
+// 又見音: every other published entry sharing this hanzi, labelled like the source
+// data writes it (人【替】 lâng, 九 【文】kiú)
+function addSeeAlso(entries) {
+  const byHanzi = new Map();
+  for (const entry of entries.values()) {
+    byHanzi.set(entry.hanzi, [...(byHanzi.get(entry.hanzi) || []), entry]);
+  }
+  for (const group of byHanzi.values()) {
+    if (group.length < 2) continue;
+    for (const entry of group) {
+      for (const other of group) {
+        if (other === entry) continue;
+        const hanzi = other.isSubstitute ? `${other.hanzi}${SUBSTITUTE_MARK}` : other.hanzi;
+        const mark = other.readingMark ? `【${other.readingMark}】` : "";
+        entry.seeAlso.push([other.id, `${hanzi} ${mark}${other.tl.join("/")}`]);
+      }
+    }
+  }
 }
 
 // Drop empty object fields; array items stay positional.

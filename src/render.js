@@ -96,13 +96,17 @@ function readingsLine(entry) {
   return line;
 }
 
+// facts: [term, text | <dd>] rows, in the official site's order
 function factsList(entry) {
   const facts = (entry.altReadings || []).map(([kind, readings]) => [kind, readings.join("、")]);
   if (entry.variants?.length) facts.push(["異用字", entry.variants.join("、")]);
+  if (entry.seeAlso?.length) facts.push(["又見音", relationLinks(entry.seeAlso)]);
   if (entry.category) facts.push(["分類", entry.category.replaceAll(",", "、")]);
   if (!facts.length) return null;
   const dl = el("dl", "facts");
-  for (const [term, value] of facts) dl.append(el("dt", "", term), el("dd", "", value));
+  for (const [term, value] of facts) {
+    dl.append(el("dt", "", term), typeof value === "string" ? el("dd", "", value) : value);
+  }
   return dl;
 }
 
@@ -135,10 +139,6 @@ export function entryView(entry) {
   const hanzi = el("h1", "entry-hanzi", entry.hanzi);
   if (entry.isSubstitute) hanzi.append(el("span", "mark", "【替】"));
   head.append(hanzi, readingsLine(entry), el("p", "entry-meta", entry.type));
-  const facts = factsList(entry);
-  if (facts) head.append(facts);
-  const relations = relationsList(entry.synonyms, entry.antonyms);
-  if (relations) head.append(relations);
   article.append(head);
 
   if (entry.senses?.length) {
@@ -146,6 +146,9 @@ export function entryView(entry) {
     const isNumbered = entry.senses.length > 1;
     entry.senses.forEach((sense, i) => list.append(senseItem(sense, isNumbered ? i + 1 : null)));
     article.append(list);
+  }
+  for (const block of [factsList(entry), relationsList(entry.synonyms, entry.antonyms)]) {
+    if (block) article.append(block);
   }
   return article;
 }

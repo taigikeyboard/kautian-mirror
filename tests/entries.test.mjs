@@ -60,6 +60,22 @@ test("buildEntries_relations_linkPublishedTargetsOnlyAndDeduplicate", () => {
   assert.deepEqual(entry.variants, ["蜀"]);
 });
 
+test("buildEntries_sameHanzi_linkedAsSeeAlsoWithSourceMarks", () => {
+  const entries = buildEntries({
+    ...fixture,
+    詞目: [header,
+      ["45", "主詞目", "人", "jîn/lîn", ""],
+      ["46", "主詞目", "人【替】", "lâng", ""],
+      ["21807", "附錄", "人", "Jîn/Lîn", ""],
+      ["42", "主詞目", "九", "【文】kiú", ""],
+    ],
+  });
+  // trace: official 人 jîn page lists 又見音 「人 替 lâng」「人 Jîn/Lîn」
+  assert.deepEqual(entries.get(45).seeAlso, [[46, "人【替】 lâng"], [21807, "人 Jîn/Lîn"]]);
+  assert.deepEqual(entries.get(46).seeAlso, [[45, "人 jîn/lîn"], [21807, "人 Jîn/Lîn"]]);
+  assert.deepEqual(entries.get(42).seeAlso, []);
+});
+
 test("serializeShard_emptyFields_omittedButTupleNullsKept", () => {
   const json = serializeShard(Object.fromEntries(buildEntries(fixture)));
   const shard = JSON.parse(json);
