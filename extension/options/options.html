@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>教典鬥搜揣 - 設定頁面</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+
+<body>
+  <main class="card">
+    <header>
+      <h1>教典鬥搜揣 - 設定頁面</h1>
+    </header>
+
+    <section>
+      <h2>選單顯示</h2>
+      <label class="row">
+        <span>漢字</span>
+        <input type="checkbox" class="switch" checked disabled>
+      </label>
+      <label class="row">
+        <span>台羅</span>
+        <input type="checkbox" class="switch" checked disabled>
+      </label>
+      <label class="row">
+        <span>白話字</span>
+        <input type="checkbox" id="showPoj" class="switch">
+      </label>
+      <label class="row">
+        <span>方音符號</span>
+        <input type="checkbox" id="showTps" class="switch">
+      </label>
+    </section>
+
+    <section>
+      <h2>隨機功能</h2>
+      <label class="row">
+        <span>隨機一个詞</span>
+        <input type="checkbox" id="showRandomWord" class="switch">
+      </label>
+      <label class="row">
+        <span>隨機一个俗語</span>
+        <input type="checkbox" id="showRandomProverb" class="switch">
+      </label>
+    </section>
+
+    <section>
+      <h2>字體大細</h2>
+      <div class="scale-group" role="radiogroup" aria-label="字體大細">
+        <label><input type="radio" name="fontScale" value="85"><span>標準</span></label>
+        <label><input type="radio" name="fontScale" value="100"><span>大</span></label>
+      </div>
+    </section>
+
+    <footer>
+      <ul>
+        <li>
+          預設快速齒: <kbd>⌘⇧K</kbd>（macOS）、<kbd>Ctrl+Shift+K</kbd>（Windows）
+        </li>
+        <!-- sponsor placeholder：文字佮連結後壁才閣改 -->
+        <li>
+          佮意這个套件？
+          <a href="https://p.ecpay.com.tw/AA663DE" target="_blank" rel="noopener noreferrer">歡迎贊助支持 →</a>
+        </li>
+        <li>
+          有問題欲反應？寄批去
+          <a href="mailto:info@taigikeyboard.tw">info@taigikeyboard.tw →</a>
+        </li>
+      </ul>
+      <p class="copyright">© 2026 Bîn-hiân</p>
+    </footer>
+  </main>
+
+  <script src="options.js"></script>
+</body>
+
+</html>

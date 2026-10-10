@@ -1,0 +1,6 @@
+[submodule "vendor/taigi-converter"]
+	path = vendor/taigi-converter
+	url = https://github.com/taigikeyboard/taigi-converter.git
+[submodule "vendor/ebird-extension"]
+	path = vendor/ebird-extension
+	url = https://github.com/birdingkit/ebird-extension.git

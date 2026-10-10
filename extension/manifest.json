@@ -1,0 +1,56 @@
+{
+  "manifest_version": 3,
+  "name": "教典鬥搜揣",
+  "version": "0.1.5",
+  "description": "予教典搜揣閣較好用。支援台羅、白話字、無聲調、詞頭、聲調數字、注音符號、方音符號、正規表達式佮隨機詞搜揣。輕可、簡單，裝了隨用。",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
+  "action": {},
+  "commands": {
+    "open-settings": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+K",
+        "mac": "Command+Shift+K"
+      },
+      "description": "開設定頁面"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://sutian.moe.edu.tw/*"
+      ],
+      "js": [
+        "dist/content.js"
+      ],
+      "css": [
+        "dist/content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "data/kautian.min.json"
+      ],
+      "matches": [
+        "https://sutian.moe.edu.tw/*"
+      ]
+    }
+  ]
+}

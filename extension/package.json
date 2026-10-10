@@ -1,0 +1,22 @@
+{
+  "name": "kautian-extension",
+  "version": "0.1.5",
+  "private": true,
+  "description": "Make searching the kautian website easier.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build:data": "node scripts/build-data.mjs",
+    "build:js": "node esbuild.config.mjs",
+    "build": "npm run build:data && npm run build:js",
+    "test": "node --test \"tests/*.test.mjs\"",
+    "bench": "node tests/bench.mjs",
+    "package": "npm run build && rm -f kautian-extension.zip && zip -q kautian-extension.zip manifest.json background.js icons/icon16.png icons/icon32.png icons/icon48.png icons/icon128.png dist/content.js dist/content.css data/kautian.min.json options/options.html options/options.css options/options.js && ls -la kautian-extension.zip"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}
