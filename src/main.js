@@ -9,6 +9,7 @@ const SUGGEST_LIMIT = 10;
 const RESULTS_LIMIT = 200;
 const DEBOUNCE_MS = 100;
 const SITE_TITLE = "教典鬥搜揣";
+const HOME_TITLE = `${SITE_TITLE}｜台語辭典`;
 
 const input = document.getElementById("q");
 const form = input.form;
@@ -58,7 +59,7 @@ const robotsMeta = document.createElement("meta");
 robotsMeta.name = "robots";
 robotsMeta.content = "noindex";
 
-function show(node, { title = SITE_TITLE, isIndexable = false } = {}) {
+function show(node, { title = HOME_TITLE, isIndexable = false } = {}) {
   document.title = title;
   if (isIndexable) robotsMeta.remove();
   else document.head.append(robotsMeta);
