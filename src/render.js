@@ -129,6 +129,37 @@ function dialectTable(dialectReadings) {
   return dd;
 }
 
+// 詞彙比較: one table per 華語詞目, accent cells spanning their word rows, as the official site
+function comparisonTables(comparisons) {
+  const dd = el("dd");
+  for (const { mandarin, rows } of comparisons) {
+    const table = el("table", "comparison");
+    table.append(el("caption", "", `華語詞目：${mandarin}`));
+    const head = el("thead");
+    const headRow = el("tr");
+    for (const label of ["腔", "詞彙", "音讀"]) headRow.append(el("th", "", label));
+    head.append(headRow);
+    table.append(head);
+    const body = el("tbody");
+    rows.forEach(([accent, hanzi, tl], i) => {
+      const row = el("tr");
+      if (accent !== rows[i - 1]?.[0]) {
+        const th = el("th", "", accent);
+        th.scope = "rowgroup";
+        let span = 1;
+        while (rows[i + span]?.[0] === accent) span++;
+        th.rowSpan = span;
+        row.append(th);
+      }
+      row.append(el("td", "", hanzi), el("td", "", tl));
+      body.append(row);
+    });
+    table.append(body);
+    dd.append(table);
+  }
+  return dd;
+}
+
 // facts: [term, text | <dd>] rows, in the official site's order
 function factsList(entry) {
   const facts = (entry.altReadings || []).map(([kind, readings]) => [kind, readings.join("、")]);
@@ -139,6 +170,7 @@ function factsList(entry) {
   if (entry.synonyms?.length) facts.push(["近義", relationLinks(entry.synonyms)]);
   if (entry.antonyms?.length) facts.push(["反義", relationLinks(entry.antonyms)]);
   if (entry.dialectReadings?.length) facts.push(["語音差異", dialectTable(entry.dialectReadings)]);
+  if (entry.comparisons?.length) facts.push(["詞彙比較", comparisonTables(entry.comparisons)]);
   if (!facts.length) return null;
   const dl = el("dl", "facts");
   for (const [term, value] of facts) {

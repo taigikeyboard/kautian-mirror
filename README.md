@@ -12,7 +12,7 @@ Live: <https://taigikeyboard.tw/kautian-mirror/>
   Pe̍h-ōe-jī, Zhuyin keyboard input, Taiwanese Phonetic Symbols, abbreviations, raw regex
 - Entry pages: readings (TL + auto-converted POJ), senses, examples, alternative readings,
   variant characters, 又見音 (same-hanzi entries), synonyms and antonyms, 語音差異 (accent readings),
-  word audio (fetched only when the speaker button is clicked)
+  詞彙比較 (per-accent vocabulary tables), word audio (fetched only when the speaker button is clicked)
 - Entry actions: copy the headword (`漢字 台羅`), share the entry link (system share sheet, else
   clipboard), and a word card — a PNG of the headword, readings and definitions with the source
   credit, shared as a file where the browser supports it, otherwise downloaded
@@ -51,6 +51,11 @@ Pushes to `main` deploy to GitHub Pages via `.github/workflows/pages.yml` (with 
 `.github/workflows/upstream-check.yml` checks the MOE `kautian.ods` weekly and opens an issue
 when it changes. To update: replace `kautian.ods` in kautian-extension, build + test and push
 there, then bump the `vendor/kautian-extension` submodule here and push `main`.
+
+The ODS has the 詞彙比較 tables but not which entry shows which table (MOE curates the links,
+sometimes across unrelated hanzi), so `npm run build:comparisons` reads them off every official
+entry page into `data/comparison-links.json`. Rerun it after an ODS update (delete
+`.cache/comparison-pages.json` first to refetch).
 
 ## License
 

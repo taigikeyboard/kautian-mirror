@@ -10,11 +10,13 @@
 //     altReadings: [[kind, [tl]]], variants: [hanzi],
 //     seeAlso: [[entryId, label]] (又見音: other entries with the same hanzi),
 //     dialectReadings: [[accent, [tl]]] (語音差異, sheet column order; empty accents dropped),
+//     comparisons: [{ mandarin, rows: [[accent, hanzi, tl]] }] (詞彙比較 tables linked to this
+//       entry by data/comparison-links.json, see scripts/fetch-comparisons.mjs; rows in accent order),
 //     synonyms/antonyms: [[entryId | null, label]] (linked: entryLabel of the target; unlinked: hanzi),
 //     senses: [{ pos, definition, examples: [[hanzi, tl, mandarin]], synonyms, antonyms }] }
 // Relation targets whose entry is not published (近反義詞不單列詞目者) keep their
 // text but get entryId null, so the UI never links to a missing entry.
-import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -55,7 +57,8 @@ function addRelation(list, entryId, hanzi) {
 }
 
 // sheets: { sheetName: string[][] including the header row } → Map<entryId, entry>
-export function buildEntries(sheets) {
+// comparisonLinks: { entryId: [華語詞目id] } (data/comparison-links.json)
+export function buildEntries(sheets, comparisonLinks = {}) {
   const rows = (name) => (sheets[name] || []).slice(1);
   const entries = new Map();
 
@@ -78,6 +81,7 @@ export function buildEntries(sheets) {
       altReadings: [],
       seeAlso: [],
       dialectReadings: [],
+      comparisons: [],
       variants: [],
       synonyms: [],
       antonyms: [],
@@ -145,6 +149,28 @@ export function buildEntries(sheets) {
     entry.dialectReadings = accents
       .map((accent, i) => [accent, splitDialectReadings(r[i + 2])])
       .filter(([, readings]) => readings.length);
+  }
+  // 詞彙比較: keyed by 華語詞目id; which entries show a table comes from comparisonLinks
+  const tables = new Map();
+  for (const [id, mandarin, accent, hanzi, tl] of rows("詞彙比較")) {
+    const key = parseId(id, "詞彙比較");
+    if (!tables.has(key)) tables.set(key, { mandarin, rows: [] });
+    tables.get(key).rows.push([accent, hanzi, tl]);
+  }
+  // official tables list accents in 語音差異 column order (stable within an accent)
+  const accentOrder = (accent) => {
+    const i = accents.indexOf(accent);
+    if (i < 0) throw new Error(`詞彙比較: unknown accent ${accent}`);
+    return i;
+  };
+  for (const table of tables.values()) table.rows.sort(([a], [b]) => accentOrder(a) - accentOrder(b));
+  for (const [entryId, tableIds] of Object.entries(comparisonLinks)) {
+    const entry = entries.get(Number(entryId));
+    if (!entry) continue;
+    entry.comparisons = tableIds.map((id) => {
+      if (!tables.has(id)) throw new Error(`comparison-links: entry ${entryId} → missing 華語詞目id ${id}`);
+      return tables.get(id);
+    });
   }
   addSeeAlso(entries);
   labelLinkedRelations(entries);
@@ -224,7 +250,7 @@ export function sitemapXml(entryIds) {
 }
 
 const SHEETS = [
-  "詞目", "義項", "例句", ...ALT_READING_SHEETS, "異用字", "語音差異",
+  "詞目", "義項", "例句", ...ALT_READING_SHEETS, "異用字", "語音差異", "詞彙比較",
   ...Object.values(RELATION_SHEETS).flat().map(([sheet]) => sheet),
 ];
 
@@ -235,6 +261,8 @@ export function readSheets(odsPath) {
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const ODS_PATH = join(ROOT, "vendor/kautian-extension/kautian.ods");
+export const COMPARISON_LINKS_PATH = join(ROOT, "data/comparison-links.json");
+export const readComparisonLinks = () => JSON.parse(readFileSync(COMPARISON_LINKS_PATH, "utf8"));
 // search index produced by the submodule's build-data.mjs (copied into dist/ by esbuild.config.mjs)
 export const VENDOR_INDEX_PATH = join(ROOT, "vendor/kautian-extension/data/kautian.min.json");
 
@@ -242,7 +270,7 @@ function main() {
   const distDir = join(ROOT, "dist");
   const outDir = join(distDir, ENTRIES_DIR);
   const t0 = performance.now();
-  const entries = buildEntries(readSheets(ODS_PATH));
+  const entries = buildEntries(readSheets(ODS_PATH), readComparisonLinks());
   for (const entry of entries.values()) entry.audio = existsSync(join(distDir, audioPath(entry.id)));
   const buckets = shardEntries(entries);
 

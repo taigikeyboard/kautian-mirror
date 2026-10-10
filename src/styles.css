@@ -249,9 +249,13 @@ h1 {
 .facts dt, .relations dt { color: var(--secondary); font-size: 15px; }
 .facts dd { overflow-wrap: anywhere; }
 .facts dd:has(a) { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
-.dialects { border-collapse: collapse; }
-.dialects th { padding: 0 1.5rem 0.25rem 0; color: var(--secondary); font-size: 15px; font-weight: 400; text-align: left; vertical-align: top; }
+.dialects, .comparison { border-collapse: collapse; }
+.dialects th, .comparison th { padding: 0 1.5rem 0.25rem 0; color: var(--secondary); font-size: 15px; font-weight: 400; text-align: left; vertical-align: top; }
 .dialects td { padding: 0 0 0.25rem; }
+.comparison td { padding: 0 1.5rem 0.25rem 0; }
+.comparison td:last-child { padding-right: 0; }
+.comparison caption { padding-bottom: 0.5rem; text-align: left; }
+.comparison + .comparison { margin-top: 1.25rem; }
 .relations dd { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
 .relations span { color: var(--secondary); }
 

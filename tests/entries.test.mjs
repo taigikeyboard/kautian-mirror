@@ -88,6 +88,26 @@ test("buildEntries_dialectSheet_readingsPerAccentInColumnOrder", () => {
   assert.deepEqual(entries.get(1).dialectReadings, []);
 });
 
+test("buildEntries_comparisonLinks_attachTablesWithRowsInAccentOrder", () => {
+  const entries = buildEntries({
+    ...fixture,
+    語音差異: [["詞目id", "漢字", "鹿港偏泉腔", "臺北偏泉腔", "臺中偏漳腔"]],
+    詞彙比較: [header,
+      ["16", "一百零一", "臺中偏漳腔", "一百空一", "tsi̍t-pah khòng it"],
+      ["16", "一百零一", "鹿港偏泉腔", "一百空一", "tsi̍t-pah khòng tsi̍t"],
+      ["118", "工具", "臺北偏泉腔", "家私", "ke-si"],
+      ["118", "工具", "臺北偏泉腔", "家私頭仔", "ke-si-thâu-á"],
+    ],
+  }, { 1: [118, 16], 50: [16] });
+  // trace: official 一百空一 page lists 鹿港 before 臺中 though the sheet has 臺中 first
+  assert.deepEqual(entries.get(1).comparisons, [
+    { mandarin: "工具", rows: [["臺北偏泉腔", "家私", "ke-si"], ["臺北偏泉腔", "家私頭仔", "ke-si-thâu-á"]] },
+    { mandarin: "一百零一", rows: [["鹿港偏泉腔", "一百空一", "tsi̍t-pah khòng tsi̍t"], ["臺中偏漳腔", "一百空一", "tsi̍t-pah khòng it"]] },
+  ]);
+  assert.deepEqual(entries.get(49).comparisons, []);
+  assert.throws(() => buildEntries(fixture, { 1: [999] }), /missing 華語詞目id 999/);
+});
+
 test("serializeShard_emptyFields_omittedButTupleNullsKept", () => {
   const json = serializeShard(Object.fromEntries(buildEntries(fixture)));
   const shard = JSON.parse(json);
