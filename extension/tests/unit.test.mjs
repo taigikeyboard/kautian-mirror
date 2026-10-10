@@ -46,6 +46,8 @@ test("classify: mode detection", () => {
   assert.equal(classify("sutiann"), "latin");
   assert.equal(classify("sū-tiānn"), "latin");
   assert.equal(classify("台語 tai"), "hanzi"); // mixed input: Hanzi wins
+  assert.equal(classify("\uF900"), "hanzi"); // CJK compatibility ideograph 豈
+  assert.equal(classify("한국"), "latin"); // Hangul sits between U+8C48 and U+FAFF, not CJK
 });
 
 test("normalizeLatin: tone marks / tone digits / hyphens / case", () => {

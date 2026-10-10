@@ -7,6 +7,7 @@ import {
 } from "../scripts/build-entries.mjs";
 import { bucketOf } from "../src/data-paths.js";
 import { FLAG } from "../extension/src/search/engine.js";
+import { parseComparisons } from "../scripts/fetch-comparisons.mjs";
 
 const header = ["header"];
 const fixture = {
@@ -140,4 +141,11 @@ test("fullData_everyEntryPage_hasAnOwnSearchIndexRow", { skip: !existsSync(SEARC
   const index = JSON.parse(readFileSync(SEARCH_INDEX_PATH, "utf8"));
   const indexed = new Set(index.id.filter((_, i) => !(index.flags[i] & FLAG.ALIAS)));
   assert.deepEqual([...entries.keys()].filter((id) => !indexed.has(id)), []);
+});
+
+test("parseComparisons_entities_decodedOnce", () => {
+  // trace: "&amp;lt;" → &lt; and &gt; untouched first, then &amp; → "&lt;" (not "<")
+  const html = '<section id="詞彙比較"><table><caption>華語詞目：A&amp;lt;B</caption>' +
+    '<tr><th rowspan="1">鹿港偏泉腔</th><td>&#20154;</td><td>lâng</td></tr></table></section>';
+  assert.deepEqual(parseComparisons(html), [{ mandarin: "A&lt;B", rows: [["鹿港偏泉腔", "人", "lâng"]] }]);
 });

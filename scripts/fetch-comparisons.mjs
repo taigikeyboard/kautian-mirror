@@ -14,8 +14,10 @@ const ENTRY_URL = (id) => `https://sutian.moe.edu.tw/zh-hant/su/${id}/`;
 const CONCURRENCY = 4;
 const CACHE_PATH = join(ROOT, ".cache/comparison-pages.json");
 
-const decode = (s) => s.replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(n)).replace(/&amp;/g, "&")
-  .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#x27;/g, "'");
+// &amp; goes last: decoding it first would turn a literal "&amp;lt;" into "<"
+const decode = (s) => s.replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(n))
+  .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#x27;/g, "'")
+  .replace(/&amp;/g, "&");
 const text = (s) => decode(s.replace(/<[^>]+>/g, "")).trim();
 
 // entry page HTML → [{ mandarin, rows: [[accent, hanzi, tl]] }] in page order
