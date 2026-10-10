@@ -1,7 +1,7 @@
 // Accessible suggestion dropdown (ARIA combobox), adapted from the extension's
 // content/ui.js: <a href> rows, textContent only, listeners bound once,
 // IME-safe keyboard handling. Positioned by CSS inside the search form.
-import { dropdownMaxHeight } from "../vendor/kautian-extension/src/content/ui.js";
+import { dropdownMaxHeight } from "../extension/src/content/ui.js";
 import { resultRow } from "./render.js";
 
 const BOX_GAP = 8; // matches .suggest top: calc(100% + 8px)

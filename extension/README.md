@@ -15,18 +15,23 @@ Education's [Dictionary of Frequently-Used Taiwan Taiwanese](https://sutian.moe.
 
 ## Development
 
+The extension lives in the `extension/` folder of
+[kautian-mirror](https://github.com/taigikeyboard/kautian-mirror) and shares its search engine,
+`kautian.ods` and build with the site. Run everything from the repository root:
+
 ```bash
-git clone --recurse-submodules https://github.com/taigikeyboard/kautian-extension.git
-cd kautian-extension
-npm install
-npm run build
-npm test
-npm run bench
-npm run package
+git clone https://github.com/taigikeyboard/kautian-mirror.git
+cd kautian-mirror
+make init
+make install
+make build     # also builds extension/dist/ and extension/data/
+make test
+make bench
+make package   # extension/kautian-extension.zip for the store
 ```
 
 To install locally, open `chrome://extensions`, enable Developer mode, choose **Load unpacked**,
-and select this repository after running `npm run build`.
+and select the `extension/` folder after running `make build`.
 
 ## License and Privacy
 

@@ -5,6 +5,10 @@
 import { readFileSync } from "node:fs";
 import { inflateRawSync } from "node:zlib";
 
+// Entry types published as /su/<id>/ pages; 近反義詞不單列詞目者 ids 404 on the site.
+// Shared by the search index (build-data.mjs) and the site's entry shards (build-entries.mjs).
+export const PUBLISHED_TYPES = new Set(["主詞目", "單字不成詞者", "臺華共同詞", "附錄"]);
+
 export function readZipEntry(path, entryName) {
   const buf = readFileSync(path);
   // locate End Of Central Directory (scan backwards, comment can pad the tail)

@@ -17,8 +17,8 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { dataFold } from "../src/search/zhuyin-fold.js";
 import { deriveTlNotone, derivePojNotone, deriveTpsNotone } from "../src/search/derive.js";
-import { readZipEntry, sheetRows } from "./ods.mjs";
-import { convert, toToneNumber } from "../vendor/taigi-converter/src/index.js";
+import { PUBLISHED_TYPES, readZipEntry, sheetRows } from "./ods.mjs";
+import { convert, toToneNumber } from "../../vendor/taigi-converter/src/index.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC_CSV = join(ROOT, "kautian.csv");
@@ -56,7 +56,6 @@ function parseCsv(text) {
 }
 
 // --- ODS: build the (roman, hanzi) → { id, variant } join map ---
-const OK_TYPES = new Set(["主詞目", "單字不成詞者", "臺華共同詞", "附錄"]);
 const MARK_RE = /【[^】]*】/g;
 const normHanzi = (s) => s.normalize("NFC").replace(MARK_RE, "").trim();
 // display form: hyphens instead of spaces, original case kept
@@ -85,7 +84,7 @@ function loadOdsForms() {
   const idRomans = new Map(); // id → roman[] (for the 異用字 join)
   const okIds = new Set();
   for (const r of main) {
-    if (r.length < 4 || !OK_TYPES.has(r[1])) continue;
+    if (r.length < 4 || !PUBLISHED_TYPES.has(r[1])) continue;
     const id = Math.trunc(Number(r[0]));
     if (!Number.isFinite(id) || id <= 0) continue;
     okIds.add(id);

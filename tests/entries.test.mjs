@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import {
-  buildEntries, readSheets, serializeShard, shardEntries, ODS_PATH, VENDOR_INDEX_PATH,
+  buildEntries, readSheets, serializeShard, shardEntries, ODS_PATH, SEARCH_INDEX_PATH,
 } from "../scripts/build-entries.mjs";
 import { bucketOf } from "../src/data-paths.js";
 
@@ -124,9 +124,9 @@ test("bucketOf_idsShareShardPer500", () => {
   assert.deepEqual(Object.keys(buckets.get(0)), ["1", "49", "60"]);
 });
 
-test("fullData_everySearchIndexId_hasAnEntryPage", { skip: !existsSync(VENDOR_INDEX_PATH) && "run `npm run build:index` first" }, () => {
+test("fullData_everySearchIndexId_hasAnEntryPage", { skip: !existsSync(SEARCH_INDEX_PATH) && "run `npm run build:index` first" }, () => {
   const entries = buildEntries(readSheets(ODS_PATH));
-  const index = JSON.parse(readFileSync(VENDOR_INDEX_PATH, "utf8"));
+  const index = JSON.parse(readFileSync(SEARCH_INDEX_PATH, "utf8"));
   const missing = [...new Set(index.id)].filter((id) => !entries.has(id));
   assert.deepEqual(missing, []);
 });

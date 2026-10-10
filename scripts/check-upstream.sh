@@ -5,7 +5,7 @@
 set -euo pipefail
 
 UPSTREAM_URL="https://sutian.moe.edu.tw/media/senn/ods/kautian.ods"
-LOCAL_ODS="${LOCAL_ODS:-vendor/kautian-extension/kautian.ods}"
+LOCAL_ODS="${LOCAL_ODS:-extension/kautian.ods}"
 ISSUE_TITLE_PREFIX="教典資料有更新"
 
 sha256() {
@@ -41,7 +41,7 @@ body="$(cat <<EOF
 
 來源：${UPSTREAM_URL}
 
-更新方式：跟 Claude 說「更新教典資料」。流程：逐列比對新舊版 → 更新 kautian-extension 的 \`kautian.ods\` → 更新本站 submodule → 抽查官方網站 → 部署。
+更新方式：跟 Claude 說「更新教典資料」。流程：逐列比對新舊版 → 更新 \`extension/kautian.ods\` → build + test → 抽查官方網站 → 部署。
 EOF
 )"
 

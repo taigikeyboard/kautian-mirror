@@ -1,11 +1,10 @@
-.PHONY: all init hooks install audio build serve test clean
+.PHONY: all init hooks install audio build serve test bench package clean
 
 all: build
 
-# submodule + only the converter it needs (skips the unused ebird reference)
+# taigi-converter submodule (index + entry builds need it)
 init: hooks
-	git submodule update --init vendor/kautian-extension
-	git -C vendor/kautian-extension submodule update --init vendor/taigi-converter
+	git submodule update --init vendor/taigi-converter
 
 # gitleaks pre-commit hook (needs `brew install gitleaks`)
 hooks:
@@ -18,7 +17,7 @@ install:
 audio:
 	npm run build:audio
 
-# search index (extension build-data) → entry shards → bundle + static files into dist/
+# search index → entry shards → site bundle into dist/ → extension bundle into extension/dist/
 build:
 	npm run build
 
@@ -26,9 +25,17 @@ build:
 serve:
 	npm run serve
 
-# entry-data tests (run `make build` first on a fresh tree)
+# site + extension tests (run `make build` first on a fresh tree)
 test:
 	npm test
 
+# search engine benchmark (run `make build` first)
+bench:
+	npm run bench
+
+# extension store upload zip → extension/kautian-extension.zip (runs a full build first)
+package:
+	npm run package:ext
+
 clean:
-	rm -rf dist
+	rm -rf dist extension/data extension/dist extension/kautian-extension.zip

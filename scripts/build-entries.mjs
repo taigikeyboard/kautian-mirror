@@ -1,6 +1,6 @@
 // kautian.ods → dist/data/entries/<bucket>.json (entry pages, sharded by id)
 // Zero-dependency data build for Node 22+. Reads the ODS shipped in the
-// kautian-extension submodule so headword search and entry pages share one source.
+// extension's copy so headword search and entry pages share one source.
 //
 // Entry shape (empty/false fields are omitted from the JSON; the UI defaults them):
 //   { id, type, hanzi, isSubstitute (【替】 substitute character),
@@ -20,12 +20,9 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import { gzipSync } from "node:zlib";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { readZipEntry, sheetRows } from "../vendor/kautian-extension/scripts/ods.mjs";
-import { convert } from "../vendor/kautian-extension/vendor/taigi-converter/src/index.js";
+import { PUBLISHED_TYPES, readZipEntry, sheetRows } from "../extension/scripts/ods.mjs";
+import { convert } from "../vendor/taigi-converter/src/index.js";
 import { ENTRIES_DIR, audioPath, bucketOf, shardPath } from "../src/data-paths.js";
-
-// Same published entry types as the extension's search index (build-data.mjs)
-export const PUBLISHED_TYPES = new Set(["主詞目", "單字不成詞者", "臺華共同詞", "附錄"]);
 
 const SUBSTITUTE_MARK = "【替】";
 const READING_MARK_RE = /^【([^】]+)】/;
@@ -260,11 +257,11 @@ export function readSheets(odsPath) {
 }
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-export const ODS_PATH = join(ROOT, "vendor/kautian-extension/kautian.ods");
+export const ODS_PATH = join(ROOT, "extension/kautian.ods");
 export const COMPARISON_LINKS_PATH = join(ROOT, "data/comparison-links.json");
 export const readComparisonLinks = () => JSON.parse(readFileSync(COMPARISON_LINKS_PATH, "utf8"));
-// search index produced by the submodule's build-data.mjs (copied into dist/ by esbuild.config.mjs)
-export const VENDOR_INDEX_PATH = join(ROOT, "vendor/kautian-extension/data/kautian.min.json");
+// search index produced by extension/scripts/build-data.mjs (copied into dist/ by esbuild.config.mjs)
+export const SEARCH_INDEX_PATH = join(ROOT, "extension/data/kautian.min.json");
 
 function main() {
   const distDir = join(ROOT, "dist");

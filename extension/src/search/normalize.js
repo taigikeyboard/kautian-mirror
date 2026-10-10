@@ -1,6 +1,6 @@
 // User-input normalization.
-import { normalizeToTl, parseSyllable } from "../../vendor/taigi-converter/src/phonetics.js";
-import { toTl } from "../../vendor/taigi-converter/src/tl.js";
+import { normalizeToTl, parseSyllable } from "../../../vendor/taigi-converter/src/phonetics.js";
+import { toTl } from "../../../vendor/taigi-converter/src/tl.js";
 
 const COMBINING_RE = /[̀-ͯ]/g;
 const SEG_SPLIT_RE = /--|[-\s·'’]+/;

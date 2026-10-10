@@ -1,19 +1,23 @@
 import { build } from "esbuild";
 import { cpSync, statSync } from "node:fs";
+import { join } from "node:path";
+
+// paths relative to extension/, so the root package.json can run this from the repo root
+const DIR = import.meta.dirname;
 
 await build({
-  entryPoints: ["src/content/main.js"],
+  entryPoints: [join(DIR, "src/content/main.js")],
   bundle: true,
   format: "iife",
-  outfile: "dist/content.js",
+  outfile: join(DIR, "dist/content.js"),
   target: ["chrome100"],
   logLevel: "info",
 });
-cpSync("src/content/styles.css", "dist/content.css");
+cpSync(join(DIR, "src/content/styles.css"), join(DIR, "dist/content.css"));
 
 // Gate: make sure the vendor 1.5MB dictionary.js did not sneak into the bundle
 // Keep the generated content script small.
-const size = statSync("dist/content.js").size;
+const size = statSync(join(DIR, "dist/content.js")).size;
 if (size > 200 * 1024) {
   console.error(`FAIL: dist/content.js is ${(size / 1024).toFixed(0)}KB — check whether vendor dictionary.js leaked in`);
   process.exit(1);

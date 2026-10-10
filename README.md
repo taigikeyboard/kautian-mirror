@@ -22,20 +22,22 @@ Live: <https://taigikeyboard.tw/kautian-mirror/>
 - SEO: `dist/sitemap.xml` lists home + every entry URL (entry pages are client-rendered, so
   crawlers can't reach them by links); result pages, missing entries and errors get `noindex`
 
-The search engine and headword index come from
-[kautian-extension](https://github.com/taigikeyboard/kautian-extension) (git submodule at
-`vendor/kautian-extension`); entry pages are built from the same `kautian.ods`.
+The browser extension 教典鬥搜揣 lives in [`extension/`](extension/) (see its README). Its search
+engine, headword index and `extension/kautian.ods` are shared with the site, so one change covers
+both; entry pages are built from the same `kautian.ods`.
 
 ## Development
 
 ```bash
 git clone https://github.com/taigikeyboard/kautian-mirror.git
 cd kautian-mirror
-make init      # submodule + its taigi-converter (skips the unused ebird reference)
+make init      # taigi-converter submodule
 make install
 make audio     # optional: MOE word mp3 → dist/audio/ (300 MB download, cached in .cache/)
-make build     # dist/: search index, entry shards (data/entries/<id/500>.json), sitemap, app bundle
-make test
+make build     # dist/: search index, entry shards (data/entries/<id/500>.json), sitemap, app bundle;
+               # extension/dist/: extension bundle
+make test      # site + extension tests
+make package   # extension store zip → extension/kautian-extension.zip
 make serve     # http://127.0.0.1:8000
 ```
 
@@ -49,8 +51,8 @@ Pushes to `main` deploy to GitHub Pages via `.github/workflows/pages.yml` (with 
 ## Data updates
 
 `.github/workflows/upstream-check.yml` checks the MOE `kautian.ods` weekly and opens an issue
-when it changes. To update: replace `kautian.ods` in kautian-extension, build + test and push
-there, then bump the `vendor/kautian-extension` submodule here and push `main`.
+when it changes. To update: replace `extension/kautian.ods`, `make build test`, push `main`
+(deploys the site), then `make package` and upload the zip to the Chrome Web Store.
 
 The ODS has the 詞彙比較 tables but not which entry shows which table (MOE curates the links,
 sometimes across unrelated hanzi), so `npm run build:comparisons` reads them off every official

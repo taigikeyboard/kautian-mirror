@@ -1,14 +1,13 @@
 // App entry: URL routing (?q= / ?id=), lazy data loading, search-as-you-type.
-import { createEngine } from "../vendor/kautian-extension/src/search/engine.js";
-import { createRecency } from "../vendor/kautian-extension/src/content/recency.js";
+import { createEngine } from "../extension/src/search/engine.js";
+import { CONFIG } from "../extension/src/content/config.js";
+import { createRecency } from "../extension/src/content/recency.js";
 import { createSuggest } from "./suggest.js";
 import { entryView, resultsView, searchHref, statusView } from "./render.js";
 import { INDEX_PATH, bucketOf, shardPath } from "./data-paths.js";
 import { initThemeToggle } from "./theme.js";
 
-const SUGGEST_LIMIT = 200;
 const RESULTS_LIMIT = 200;
-const DEBOUNCE_MS = 100;
 const SITE_TITLE = "教典備援網站";
 const HOME_TITLE = "教典備援網站";
 
@@ -174,14 +173,14 @@ async function updateSuggestions() {
     }
     if (seq !== suggestSeq) return;
   }
-  suggest.render(engine.query(query, { limit: SUGGEST_LIMIT, recencyRank: recency.rankOf }));
+  suggest.render(engine.query(query, { limit: CONFIG.LIMIT, recencyRank: recency.rankOf }));
 }
 
 input.addEventListener("focus", () => loadEngine().catch(() => {}));
 input.addEventListener("input", () => {
   cancelSuggestions();
   suggest.clearActive();
-  typingTimer = setTimeout(updateSuggestions, DEBOUNCE_MS);
+  typingTimer = setTimeout(updateSuggestions, CONFIG.DEBOUNCE_MS);
 });
 form.addEventListener("submit", (ev) => ev.preventDefault());
 

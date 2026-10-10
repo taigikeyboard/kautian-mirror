@@ -2,21 +2,24 @@
   "name": "kautian-mirror",
   "version": "0.1.0",
   "private": true,
-  "description": "Standalone search site for the MOE Dictionary of Frequently-Used Taiwan Taiwanese.",
+  "description": "Standalone search site and browser extension for the MOE Dictionary of Frequently-Used Taiwan Taiwanese.",
   "type": "module",
   "license": "MIT",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "build:index": "node vendor/kautian-extension/scripts/build-data.mjs",
+    "build:index": "node extension/scripts/build-data.mjs",
     "build:audio": "node scripts/fetch-audio.mjs",
     "build:comparisons": "node scripts/fetch-comparisons.mjs",
     "build:entries": "node scripts/build-entries.mjs",
     "build:site": "node esbuild.config.mjs",
-    "build": "npm run build:index && npm run build:entries && npm run build:site",
+    "build:ext": "node extension/esbuild.config.mjs",
+    "build": "npm run build:index && npm run build:entries && npm run build:site && npm run build:ext",
     "serve": "node esbuild.config.mjs --serve",
-    "test": "node --test \"tests/*.test.mjs\""
+    "test": "node --test \"tests/*.test.mjs\" \"extension/tests/*.test.mjs\"",
+    "bench": "node extension/tests/bench.mjs",
+    "package:ext": "npm run build && cd extension && rm -f kautian-extension.zip && zip -q kautian-extension.zip manifest.json background.js icons/icon16.png icons/icon32.png icons/icon48.png icons/icon128.png dist/content.js dist/content.css data/kautian.min.json options/options.html options/options.css options/options.js && ls -la kautian-extension.zip"
   },
   "devDependencies": {
     "esbuild": "^0.28.2"

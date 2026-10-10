@@ -1,17 +1,7 @@
-# OS / editor
-.DS_Store
-
-# Claude Code local settings
-.claude
-
 # local reference material
 references
 IMPLEMENTATION_PLAN.md
 
-# dependencies
-node_modules/
-
-# build artifacts (regenerate with `npm run build`)
+# build artifacts (regenerate with `npm run build:ext`)
 data/
-dist/
 *.zip

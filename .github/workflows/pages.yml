@@ -3,6 +3,14 @@ name: pages
 on:
   push:
     branches: [main]
+    # extension-only files (shared code under extension/src and extension/scripts still deploys)
+    paths-ignore:
+      - "extension/manifest.json"
+      - "extension/background.js"
+      - "extension/icons/**"
+      - "extension/options/**"
+      - "extension/store-assets/**"
+      - "extension/*.md"
   workflow_dispatch:
 
 permissions:
@@ -22,11 +30,9 @@ jobs:
         with:
           persist-credentials: false
 
-      # same submodules as `make init`, without its local git-hook setup
-      - name: Init submodules
-        run: |
-          git submodule update --init vendor/kautian-extension
-          git -C vendor/kautian-extension submodule update --init vendor/taigi-converter
+      # same submodule as `make init`, without its local git-hook setup
+      - name: Init submodule
+        run: git submodule update --init vendor/taigi-converter
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
