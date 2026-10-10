@@ -32,12 +32,17 @@ export function statusView(text, retry) {
   return box;
 }
 
+// engine query() error / truncated messages, shared by the dropdown and the result list
+export const regexErrorText = (error) =>
+  error === "too-long" ? "正規表達式傷長（上濟 64 字）。" : "正規表達式無正確。";
+// truncated: the engine's regex scan hit its cap, so matches may be missing
+export const TRUNCATED_TEXT = "結果可能無齊全";
+
 export function resultsView(query, { results, error, truncated }) {
-  if (error) return statusView(error === "too-long" ? "正規表達式傷長（上濟 64 字）。" : "正規表達式無正確。");
+  if (error) return statusView(regexErrorText(error));
   if (!results.length) return statusView(`揣無「${query}」。`);
   const frag = document.createDocumentFragment();
-  // truncated: the engine's regex scan hit its cap, so matches may be missing
-  if (truncated) frag.append(el("p", "results-meta", "結果可能無齊全"));
+  if (truncated) frag.append(el("p", "results-meta", TRUNCATED_TEXT));
   const list = el("ul", "results");
   for (const res of results) {
     const item = el("li");

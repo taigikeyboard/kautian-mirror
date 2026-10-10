@@ -1,7 +1,10 @@
 // Accessible suggestion dropdown (ARIA combobox), adapted from the extension's
 // content/ui.js: <a href> rows, textContent only, listeners bound once,
 // IME-safe keyboard handling. Positioned by CSS inside the search form.
-import { el, resultRow } from "./render.js";
+import { dropdownMaxHeight } from "../vendor/kautian-extension/src/content/ui.js";
+import { TRUNCATED_TEXT, el, regexErrorText, resultRow } from "./render.js";
+
+const BOX_GAP = 8; // matches .suggest top: calc(100% + 8px)
 
 // onDismiss runs on every hide (Escape, outside click, navigation) so the caller
 // can cancel pending suggestion updates that would otherwise reopen the list.
@@ -44,6 +47,8 @@ export function createSuggest({ input, box, onOpen, onSubmit, onDismiss }) {
   }
 
   function show() {
+    // shrink to the viewport space below the input, like the extension
+    box.style.maxHeight = `${dropdownMaxHeight(input.getBoundingClientRect().bottom + BOX_GAP, window.innerHeight)}px`;
     box.hidden = false;
     input.setAttribute("aria-expanded", "true");
   }
@@ -54,7 +59,9 @@ export function createSuggest({ input, box, onOpen, onSubmit, onDismiss }) {
     show();
   }
 
-  function render(results) {
+  // out: engine query() result { results, error, truncated }
+  function render({ results, error, truncated }) {
+    if (error) return hint(regexErrorText(error));
     clear();
     if (!results.length) return hide();
     results.forEach((res, idx) => {
@@ -65,6 +72,7 @@ export function createSuggest({ input, box, onOpen, onSubmit, onDismiss }) {
       box.append(row);
       rows.push(row);
     });
+    if (truncated) box.append(el("div", "suggest-hint", TRUNCATED_TEXT));
     show();
   }
 

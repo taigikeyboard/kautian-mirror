@@ -1,5 +1,6 @@
 // App entry: URL routing (?q= / ?id=), lazy data loading, search-as-you-type.
 import { createEngine } from "../vendor/kautian-extension/src/search/engine.js";
+import { createRecency } from "../vendor/kautian-extension/src/content/recency.js";
 import { createSuggest } from "./suggest.js";
 import { entryView, resultsView, searchHref, statusView } from "./render.js";
 import { INDEX_PATH, bucketOf, shardPath } from "./data-paths.js";
@@ -10,6 +11,29 @@ const RESULTS_LIMIT = 200;
 const DEBOUNCE_MS = 100;
 const SITE_TITLE = "教典備援網站";
 const HOME_TITLE = "教典備援網站";
+
+// chrome.storage-shaped adapter over localStorage, so the extension's recency LRU runs
+// unchanged; storage may throw (private mode, blocked site data) — recency then lasts the page view
+const localArea = {
+  get(defaults, callback) {
+    const stored = {};
+    for (const [key, fallback] of Object.entries(defaults)) {
+      try {
+        const raw = localStorage.getItem(key);
+        stored[key] = raw === null ? fallback : JSON.parse(raw);
+      } catch {
+        stored[key] = fallback;
+      }
+    }
+    callback(stored);
+  },
+  set(items) {
+    try {
+      for (const [key, value] of Object.entries(items)) localStorage.setItem(key, JSON.stringify(value));
+    } catch {}
+  },
+};
+const recency = createRecency(localArea);
 
 const input = document.getElementById("q");
 const form = input.form;
@@ -74,7 +98,7 @@ async function showResults(query) {
   try {
     const loaded = await loadEngine();
     if (seq !== navSeq) return;
-    show(resultsView(query, loaded.query(query, { limit: RESULTS_LIMIT })), { title });
+    show(resultsView(query, loaded.query(query, { limit: RESULTS_LIMIT, recencyRank: recency.rankOf })), { title });
   } catch (err) {
     if (seq !== navSeq) return;
     console.warn("index.load.failed", err.message);
@@ -93,6 +117,7 @@ async function showEntry(rawId) {
       show(statusView("揣無這个詞目。"));
       return;
     }
+    recency.record(id);
     show(entryView(entry), { title: `${entry.hanzi} ${entry.tl.join("/")}｜${SITE_TITLE}`, isIndexable: true });
     window.scrollTo(0, 0);
   } catch (err) {
@@ -151,7 +176,7 @@ async function updateSuggestions() {
     }
     if (seq !== suggestSeq) return;
   }
-  suggest.render(engine.query(query, { limit: SUGGEST_LIMIT }).results);
+  suggest.render(engine.query(query, { limit: SUGGEST_LIMIT, recencyRank: recency.rankOf }));
 }
 
 input.addEventListener("focus", () => loadEngine().catch(() => {}));
