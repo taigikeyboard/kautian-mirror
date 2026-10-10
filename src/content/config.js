@@ -8,7 +8,7 @@ export const CONFIG = {
   LOCALES: ["zh-hant", "und-hani"],
   DEFAULT_LOCALE: "zh-hant",
   DATA_URL: "data/kautian.min.json",
-  DEBOUNCE_MS: 120,
+  DEBOUNCE_MS: 100,
   LIMIT: 200,
   entryHref(locale, id) {
     return `/${locale}/su/${id}/`;
