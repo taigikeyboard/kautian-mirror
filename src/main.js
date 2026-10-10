@@ -8,8 +8,8 @@ import { initThemeToggle } from "./theme.js";
 const SUGGEST_LIMIT = 10;
 const RESULTS_LIMIT = 200;
 const DEBOUNCE_MS = 100;
-const SITE_TITLE = "教典鬥搜揣";
-const HOME_TITLE = "教典備援網站｜台語辭典";
+const SITE_TITLE = "教典備援網站";
+const HOME_TITLE = "教典備援網站";
 
 const input = document.getElementById("q");
 const form = input.form;
