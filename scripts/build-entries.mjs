@@ -208,6 +208,21 @@ export function shardEntries(entries) {
 
 export const serializeShard = (shard) => JSON.stringify(shard, omitEmpty);
 
+// published site root, same as og:url in src/index.html
+export const SITE_URL = "https://taigikeyboard.tw/kautian-mirror/";
+
+// home + one ?id= URL per entry; entry pages are client-rendered, so crawlers can't find them by links
+export function sitemapXml(entryIds) {
+  const urls = [SITE_URL, ...entryIds.map((id) => `${SITE_URL}?id=${id}`)];
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...urls.map((url) => `<url><loc>${url}</loc></url>`),
+    "</urlset>",
+    "",
+  ].join("\n");
+}
+
 const SHEETS = [
   "詞目", "義項", "例句", ...ALT_READING_SHEETS, "異用字", "語音差異",
   ...Object.values(RELATION_SHEETS).flat().map(([sheet]) => sheet),
@@ -244,6 +259,7 @@ function main() {
     gzipBytes += size;
     largestGzip = Math.max(largestGzip, size);
   }
+  writeFileSync(join(distDir, "sitemap.xml"), sitemapXml([...entries.keys()].sort((a, b) => a - b)));
   const withoutSenses = [...entries.values()].filter((e) => !e.senses.length).length;
   const withAudio = [...entries.values()].filter((e) => e.audio).length;
   console.log([

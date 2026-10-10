@@ -9,7 +9,6 @@ const SUGGEST_LIMIT = 10;
 const RESULTS_LIMIT = 200;
 const DEBOUNCE_MS = 100;
 const SITE_TITLE = "教典鬥搜揣";
-const HOME_TITLE = `${SITE_TITLE}｜非官方教典備份網站`;
 
 const input = document.getElementById("q");
 const form = input.form;
@@ -54,8 +53,15 @@ function loadEntry(id) {
 // --- views; navSeq drops results of a navigation that has been superseded ---
 let navSeq = 0;
 
-function show(node, { title = HOME_TITLE } = {}) {
+// only home and entry pages belong in search engines; search results, misses and errors get noindex
+const robotsMeta = document.createElement("meta");
+robotsMeta.name = "robots";
+robotsMeta.content = "noindex";
+
+function show(node, { title = SITE_TITLE, isIndexable = false } = {}) {
   document.title = title;
+  if (isIndexable) robotsMeta.remove();
+  else document.head.append(robotsMeta);
   view.replaceChildren(...(node ? [node] : []));
 }
 
@@ -86,7 +92,7 @@ async function showEntry(rawId) {
       show(statusView("揣無這个詞目。"));
       return;
     }
-    show(entryView(entry), { title: `${entry.hanzi} ${entry.tl.join("/")}｜${SITE_TITLE}` });
+    show(entryView(entry), { title: `${entry.hanzi} ${entry.tl.join("/")}｜${SITE_TITLE}`, isIndexable: true });
     window.scrollTo(0, 0);
   } catch (err) {
     if (seq !== navSeq) return;
@@ -103,7 +109,7 @@ function route() {
   if (query) return showResults(query);
   navSeq++;
   input.value = "";
-  show(null);
+  show(null, { isIndexable: true });
 }
 
 function navigate(href) {
