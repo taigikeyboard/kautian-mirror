@@ -96,7 +96,12 @@ function readingsLine(entry) {
   // official site places the play icon right after the romanization
   if (entry.audio) tl.append(playButton(entry.id));
   line.append(tl);
-  if (entry.poj) line.append(el("span", "reading-poj", entry.poj.join(" / ")));
+  if (entry.poj) {
+    const poj = el("span", "reading-poj");
+    // site UI label, not source text: tells the second romanization apart from 台羅
+    poj.append(el("span", "reading-label", "POJ:"), entry.poj.join(" / "));
+    line.append(poj);
+  }
   return line;
 }
 
