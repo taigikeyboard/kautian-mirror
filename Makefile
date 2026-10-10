@@ -1,4 +1,4 @@
-.PHONY: all init hooks install audio build serve test bench package clean
+.PHONY: all init hooks install audio sync-data build serve test bench package clean
 
 all: build
 
@@ -16,6 +16,10 @@ install:
 # MOE word audio → dist/audio/ (300 MB download, cached in .cache/); run before `make build`
 audio:
 	npm run build:audio
+
+# kautian.csv + kautian.ods ← taigikeyboard main (needs gh + curl); then `make build test`
+sync-data:
+	bash scripts/sync-taigikeyboard.sh
 
 # search index → entry shards → site bundle into dist/ → extension bundle into extension/dist/
 build:

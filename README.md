@@ -34,6 +34,7 @@ cd kautian-mirror
 make init      # taigi-converter submodule
 make install
 make audio     # optional: MOE word mp3 → dist/audio/ (300 MB download, cached in .cache/)
+make sync-data # optional: kautian.csv + kautian.ods ← taigikeyboard main
 make build     # dist/: search index, entry shards (data/entries/<id/500>.json), sitemap, app bundle;
                # extension/dist/: extension bundle
 make test      # site + extension tests
@@ -50,8 +51,8 @@ Pushes to `main` deploy to GitHub Pages via `.github/workflows/pages.yml` (with 
 
 `extension/kautian.csv` and `extension/kautian.ods` are copies of the cleaned data in
 [taigikeyboard](https://github.com/taigikeyboard/taigikeyboard) (`dictionary/sources/official/kautian/data/`).
-`.github/workflows/sync-data.yml` checks it weekly and opens a PR with the build + test result when
-it changes; `DRY_RUN=1 bash scripts/sync-taigikeyboard.sh` previews the diff locally.
+`make sync-data` fetches the latest from taigikeyboard `main` and prints the diff; then
+`make build test` and commit.
 
 ## Data updates
 

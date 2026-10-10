@@ -41,7 +41,7 @@ body="$(cat <<EOF
 
 來源：${UPSTREAM_URL}
 
-更新方式：在 [taigikeyboard](https://github.com/taigikeyboard/taigikeyboard) 更新 \`dictionary/sources/official/kautian/data/\`（\`raw/kautian.ods\` + 重新產生 \`kautian.csv\`）。本 repo 的 \`sync-data.yml\` 每週一會把新版開成 PR；要立刻同步就跑 \`gh workflow run sync-data.yml\`。
+更新方式：在 [taigikeyboard](https://github.com/taigikeyboard/taigikeyboard) 更新 \`dictionary/sources/official/kautian/data/\`（\`raw/kautian.ods\` + 重新產生 \`kautian.csv\`）。再回本 repo 跑 \`make sync-data\` → \`make build test\` → commit。
 EOF
 )"
 

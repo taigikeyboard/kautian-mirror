@@ -1,7 +1,7 @@
 name: upstream-check
 
 # Weekly: open an issue when MOE publishes a kautian.ods that differs from the one we build from
-# (the fix lands in taigikeyboard; sync-data.yml then brings it here).
+# (the fix lands in taigikeyboard; `make sync-data` then brings it here).
 on:
   schedule:
     - cron: "0 1 * * 1" # Mondays 09:00 Taiwan time
