@@ -102,7 +102,7 @@ async function showResults(query) {
   } catch (err) {
     if (seq !== navSeq) return;
     console.warn("index.load.failed", err.message);
-    show(statusView("詞典資料載入失敗。", () => showResults(query)));
+    show(statusView("詞典資料載入失敗", () => showResults(query)));
   }
 }
 
@@ -114,7 +114,7 @@ async function showEntry(rawId) {
     const entry = Number.isInteger(id) && id > 0 ? await loadEntry(id) : null;
     if (seq !== navSeq) return;
     if (!entry) {
-      show(statusView("揣無這个詞目。"));
+      show(statusView("揣無這个詞目"));
       return;
     }
     recency.record(id);
@@ -123,7 +123,7 @@ async function showEntry(rawId) {
   } catch (err) {
     if (seq !== navSeq) return;
     console.warn("entry.load.failed", id, err.message);
-    show(statusView("詞目載入失敗。", () => showEntry(rawId)));
+    show(statusView("詞目載入失敗", () => showEntry(rawId)));
   }
 }
 
@@ -167,11 +167,9 @@ async function updateSuggestions() {
   if (!query) return suggest.hide();
   const seq = suggestSeq;
   if (!engine) {
-    suggest.hint("載入中…");
     try {
       await loadEngine();
     } catch {
-      if (seq === suggestSeq) suggest.hint("詞典資料載入失敗。");
       return;
     }
     if (seq !== suggestSeq) return;

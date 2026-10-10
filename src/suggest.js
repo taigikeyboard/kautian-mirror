@@ -2,7 +2,7 @@
 // content/ui.js: <a href> rows, textContent only, listeners bound once,
 // IME-safe keyboard handling. Positioned by CSS inside the search form.
 import { dropdownMaxHeight } from "../vendor/kautian-extension/src/content/ui.js";
-import { TRUNCATED_TEXT, el, regexErrorText, resultRow } from "./render.js";
+import { resultRow } from "./render.js";
 
 const BOX_GAP = 8; // matches .suggest top: calc(100% + 8px)
 
@@ -53,17 +53,10 @@ export function createSuggest({ input, box, onOpen, onSubmit, onDismiss }) {
     input.setAttribute("aria-expanded", "true");
   }
 
-  function hint(text) {
+  // out: engine query() result { results, error }; errors show on the results page only
+  function render({ results, error }) {
     clear();
-    box.append(el("div", "suggest-hint", text));
-    show();
-  }
-
-  // out: engine query() result { results, error, truncated }
-  function render({ results, error, truncated }) {
-    if (error) return hint(regexErrorText(error));
-    clear();
-    if (!results.length) return hide();
+    if (error || !results.length) return hide();
     results.forEach((res, idx) => {
       const row = resultRow(res);
       row.id = `suggest-${idx}`;
@@ -72,7 +65,6 @@ export function createSuggest({ input, box, onOpen, onSubmit, onDismiss }) {
       box.append(row);
       rows.push(row);
     });
-    if (truncated) box.append(el("div", "suggest-hint", TRUNCATED_TEXT));
     show();
   }
 
@@ -109,5 +101,5 @@ export function createSuggest({ input, box, onOpen, onSubmit, onDismiss }) {
   });
 
   // clearActive: typing invalidates the highlighted row before new results arrive
-  return { render, hint, hide, clearActive: () => setActive(-1) };
+  return { render, hide, clearActive: () => setActive(-1) };
 }

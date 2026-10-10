@@ -24,7 +24,7 @@ export function resultRow(res) {
 export function statusView(text, retry) {
   const box = el("p", "status", text);
   if (retry) {
-    const button = el("button", "", "再試一擺");
+    const button = el("button", "", "閣試一擺");
     button.type = "button";
     button.addEventListener("click", retry);
     box.append(button);
@@ -32,17 +32,14 @@ export function statusView(text, retry) {
   return box;
 }
 
-// engine query() error / truncated messages, shared by the dropdown and the result list
-export const regexErrorText = (error) =>
-  error === "too-long" ? "正規表達式傷長（上濟 64 字）。" : "正規表達式無正確。";
-// truncated: the engine's regex scan hit its cap, so matches may be missing
-export const TRUNCATED_TEXT = "結果可能無齊全";
+// engine query() error message
+const regexErrorText = (error) =>
+  error === "too-long" ? "正規表達式傷長（上濟 64 字）" : "正規表達式無正確";
 
-export function resultsView(query, { results, error, truncated }) {
+export function resultsView(query, { results, error }) {
   if (error) return statusView(regexErrorText(error));
-  if (!results.length) return statusView(`揣無「${query}」。`);
+  if (!results.length) return statusView(`「${query}」揣無`);
   const frag = document.createDocumentFragment();
-  if (truncated) frag.append(el("p", "results-meta", TRUNCATED_TEXT));
   const list = el("ul", "results");
   for (const res of results) {
     const item = el("li");
