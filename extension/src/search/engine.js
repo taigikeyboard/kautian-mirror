@@ -24,10 +24,18 @@ const CANDIDATE_CAP = 50;
 const PREFIX_CAP = 200;
 const SUBSTR_CAP = 100;
 
-const STR_COLS = ["tl", "hanzi", "poj", "tps", "tlNum", "tpsNotoneVar", "abTl", "abPoj", "abTps"];
+// Per-row flags bits, written by build-data.mjs
+export const FLAG = {
+  MAIN: 1, // main entry
+  VARIANT: 2, // variant reading/spelling
+  ALIAS: 4, // search alias (語音差異 reading / 詞彙比較 word), shown as its entry headword
+  COMPARISON: 8, // 詞彙比較 word
+};
+
+const STR_COLS = ["tl", "hanzi", "poj", "tps", "tlNum", "tpsNotoneVar", "abTl", "abPoj", "abTps", "gloss"];
 
 function unpack(packed) {
-  if (packed?.meta?.format !== 4) {
+  if (packed?.meta?.format !== 5) {
     throw new Error(`unsupported data format: ${packed?.meta?.format}`);
   }
   const d = { id: packed.id, flags: packed.flags };
@@ -150,17 +158,38 @@ export function createEngine(packed) {
     });
   const ixZhu = () => index("zhu", () => buildSorted(zhu.map((k, i) => [k, i])));
 
+  // main entries first, variant readings (and aliases) last
+  const formRank = (i) => (d.flags[i] & FLAG.MAIN ? 0 : 2) + (d.flags[i] & FLAG.VARIANT ? 1 : 0);
+
+  // entry id → the row that displays it (best formRank, first wins); alias rows never display
+  let heads = null;
+  function headRow(i) {
+    if (!(d.flags[i] & FLAG.ALIAS)) return i;
+    if (!heads) {
+      heads = new Map();
+      for (let j = 0; j < n; j++) {
+        if (d.flags[j] & FLAG.ALIAS) continue;
+        const best = heads.get(d.id[j]);
+        if (best === undefined || formRank(j) < formRank(best)) heads.set(d.id[j], j);
+      }
+    }
+    return heads.get(d.id[i]) ?? i;
+  }
+
+  // i = the matched row; the displayed fields come from its head row
   function toResult(i, tier, recent) {
+    const h = headRow(i);
     return {
       i,
       tier,
-      id: d.id[i],
-      tl: d.tl[i],
-      hanzi: d.hanzi[i],
-      poj: d.poj[i],
-      tps: d.tps[i],
-      main: (d.flags[i] & 1) !== 0,
-      variant: (d.flags[i] & 2) !== 0,
+      id: d.id[h],
+      tl: d.tl[h],
+      hanzi: d.hanzi[h],
+      poj: d.poj[h],
+      tps: d.tps[h],
+      gloss: d.gloss[h], // first 華語釋義, cut at build time ("" when the entry has none)
+      main: (d.flags[h] & FLAG.MAIN) !== 0,
+      variant: (d.flags[h] & FLAG.VARIANT) !== 0,
       recent, // recently opened by the user (drives the clock hint in the UI)
     };
   }
@@ -178,12 +207,9 @@ export function createEngine(packed) {
         if ((ra !== undefined) !== (rb !== undefined)) return ra !== undefined ? -1 : 1;
         if (ra !== undefined && ra !== rb) return ra - rb;
       }
-      const ma = d.flags[a[0]] & 1;
-      const mb = d.flags[b[0]] & 1;
-      if (ma !== mb) return mb - ma; // main entries first
-      const va = d.flags[a[0]] & 2;
-      const vb = d.flags[b[0]] & 2;
-      if (va !== vb) return va - vb; // variant readings last
+      const fa = formRank(a[0]);
+      const fb = formRank(b[0]);
+      if (fa !== fb) return fa - fb;
       return d.tl[a[0]].length - d.tl[b[0]].length;
     });
     // one row per entry id — the best-ranked form represents the entry
@@ -214,7 +240,7 @@ export function createEngine(packed) {
 
   let mainRows = null;
   function randomMainId(rand = Math.random) {
-    if (!mainRows) mainRows = buildPool((i) => (d.flags[i] & 1) !== 0);
+    if (!mainRows) mainRows = buildPool((i) => (d.flags[i] & FLAG.MAIN) !== 0);
     return d.id[mainRows[Math.floor(rand() * mainRows.length)]];
   }
 
@@ -226,13 +252,15 @@ export function createEngine(packed) {
   let proverbRows = null;
   function randomProverbId(rand = Math.random) {
     if (!proverbRows) {
-      proverbRows = buildPool((i) => (d.flags[i] & 1) !== 0 && PROVERB_RE.test(d.hanzi[i]));
+      proverbRows = buildPool((i) => (d.flags[i] & FLAG.MAIN) !== 0 && PROVERB_RE.test(d.hanzi[i]));
     }
     if (!proverbRows.length) return undefined;
     return d.id[proverbRows[Math.floor(rand() * proverbRows.length)]];
   }
 
   function add(tiers, i, tier) {
+    // 詞彙比較 words are partial matches at best, like the official 部份符合
+    if (d.flags[i] & FLAG.COMPARISON && tier < TIER.SUBSTR) tier = TIER.SUBSTR;
     const cur = tiers.get(i);
     if (cur === undefined || tier < cur) tiers.set(i, tier);
   }

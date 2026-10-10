@@ -43,6 +43,48 @@ test("entry 16685 (寬/緩 khuann): every input system reaches it", () => {
   }
 });
 
+test("語音差異 alias: khìr ranks 去 + 課 toned-exact, shown as their headwords", () => {
+  // trace: 語音差異 去(1395) 鹿港 khìr, 課(16827) 新竹 khìr → alias rows → headRow → main row
+  const r = engine.query("khìr");
+  assert.deepEqual(
+    r.results.slice(0, 2).map((x) => [x.id, x.hanzi, x.tl, x.tier]),
+    [[1395, "去", "khì", TIER.TONED], [16827, "課", "khuè", TIER.TONED]]
+  );
+});
+
+test("詞彙比較 alias: 人仔書 / lâng-á-tsir find 尪仔冊 as a partial match", () => {
+  // trace: 詞彙比較 table 23 漫畫書, 鹿港 人仔書 lâng-á-tsir → linked entry 3073 尪仔冊
+  for (const q of ["人仔書", "lâng-á-tsir"]) {
+    const r = engine.query(q);
+    assert.deepEqual(r.results.map((x) => [x.id, x.hanzi, x.tier]), [[3073, "尪仔冊", TIER.SUBSTR]], q);
+  }
+});
+
+test("詞彙比較 alias: never outranks the headword it duplicates", () => {
+  // 頭路 is its own headword and a word in the 工作 table linked to 工課 / 穡頭
+  const r = engine.query("頭路");
+  assert.deepEqual([r.results[0].id, r.results[0].tier], [12076, TIER.EXACT]);
+  const linked = r.results.filter((x) => x.id === 519 || x.id === 12539);
+  assert.deepEqual(linked.map((x) => x.tier), [TIER.SUBSTR, TIER.SUBSTR]);
+});
+
+test("shared form: 恩 un / 除 tû reach both the 白 and the 文 entry", () => {
+  // trace: 詞目 5952 恩 【白】in/un + 5953 【文】un share key "un恩"; 6794 除 【白】tî/tû + 6795 【文】tû
+  for (const [q, want] of [["恩", [5952, 5953]], ["un", [5952, 5953]], ["除", [6794, 6795]], ["tû", [6794, 6795]]]) {
+    const ids = engine.query(q).results.map((x) => x.id);
+    for (const id of want) assert.ok(ids.includes(id), `${q} should include entry ${id}`);
+  }
+});
+
+test("gloss: first 華語釋義 tells the five 東區 Tang-khu apart", () => {
+  // trace: 義項 21235 "新竹市行政區(附錄－地名－臺灣縣市行政區名)" → first 30 chars; 23465 has no 義項
+  const gloss = Object.fromEntries(engine.query("東區").results.map((x) => [x.id, x.gloss]));
+  assert.equal(gloss[23465], "");
+  assert.equal(gloss[21235], "新竹市行政區(附錄－地名－臺灣縣市行政區名)".slice(0, 30));
+  const appendix = [21235, 21240, 21248, 21251].map((id) => gloss[id].slice(0, 3));
+  assert.deepEqual(appendix, ["新竹市", "臺中市", "嘉義市", "臺南市"]);
+});
+
 test("entry dedup: one row per entry id", () => {
   const r = engine.query("kanna");
   const ids = r.results.map((x) => x.id);

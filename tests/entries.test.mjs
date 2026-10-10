@@ -6,6 +6,7 @@ import {
   buildEntries, readSheets, serializeShard, shardEntries, ODS_PATH, SEARCH_INDEX_PATH,
 } from "../scripts/build-entries.mjs";
 import { bucketOf } from "../src/data-paths.js";
+import { FLAG } from "../extension/src/search/engine.js";
 
 const header = ["header"];
 const fixture = {
@@ -41,6 +42,8 @@ test("buildEntries_markedHeadword_splitsMarksFromTextAndReadings", () => {
   assert.deepEqual(entries.get(49).tl, ["peh", "pueh"]);
   // trace: taigi-converter tl→poj: pueh → poeh
   assert.deepEqual(entries.get(49).poj, ["peh", "poeh"]);
+  // trace: taigi-converter tl→zhuyin: peh → ㄅㆤㆷ, pueh → ㄅㄨㆤㆷ
+  assert.deepEqual(entries.get(49).tps, ["ㄅㆤㆷ", "ㄅㄨㆤㆷ"]);
   assert.deepEqual(entries.get(49).altReadings, [["又唸作", ["pat", "pueh"]]]);
 });
 
@@ -111,8 +114,8 @@ test("buildEntries_comparisonLinks_attachTablesWithRowsInAccentOrder", () => {
 test("serializeShard_emptyFields_omittedButTupleNullsKept", () => {
   const json = serializeShard(Object.fromEntries(buildEntries(fixture)));
   const shard = JSON.parse(json);
-  // poj omitted: identical to tl
-  assert.deepEqual(shard[60], { id: 60, type: "臺華共同詞", hanzi: "電腦", tl: ["tiān-náu"] });
+  // poj omitted: identical to tl; trace: tl→zhuyin tiān-náu → "ㄉㄧㄢ˫ ㄋㄠˋ"
+  assert.deepEqual(shard[60], { id: 60, type: "臺華共同詞", hanzi: "電腦", tl: ["tiān-náu"], tps: ["ㄉㄧㄢ˫ ㄋㄠˋ"] });
   assert.deepEqual(shard[1].senses[0].antonyms, [[null, "刀仔"]]);
 });
 
@@ -129,4 +132,12 @@ test("fullData_everySearchIndexId_hasAnEntryPage", { skip: !existsSync(SEARCH_IN
   const index = JSON.parse(readFileSync(SEARCH_INDEX_PATH, "utf8"));
   const missing = [...new Set(index.id)].filter((id) => !entries.has(id));
   assert.deepEqual(missing, []);
+});
+
+// entries sharing a form (恩 【白】in/un + 【文】un, five 附錄 東區) each need their own row
+test("fullData_everyEntryPage_hasAnOwnSearchIndexRow", { skip: !existsSync(SEARCH_INDEX_PATH) && "run `npm run build:index` first" }, () => {
+  const entries = buildEntries(readSheets(ODS_PATH));
+  const index = JSON.parse(readFileSync(SEARCH_INDEX_PATH, "utf8"));
+  const indexed = new Set(index.id.filter((_, i) => !(index.flags[i] & FLAG.ALIAS)));
+  assert.deepEqual([...entries.keys()].filter((id) => !indexed.has(id)), []);
 });

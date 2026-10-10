@@ -5,7 +5,8 @@
 // Entry shape (empty/false fields are omitted from the JSON; the UI defaults them):
 //   { id, type, hanzi, isSubstitute (【替】 substitute character),
 //     readingMark (文/白/俗 from a 【文】-style reading prefix), tl: [reading],
-//     poj: [reading] (only when some reading differs from tl), category,
+//     poj: [reading] (only when some reading differs from tl),
+//     tps: [reading] (方音符號, syllables space-separated), category,
 //     audio (dist/audio/ has its word mp3; run `npm run build:audio` first),
 //     altReadings: [[kind, [tl]]], variants: [hanzi],
 //     seeAlso: [[entryId, label]] (又見音: other entries with the same hanzi),
@@ -41,13 +42,18 @@ function parseId(cell, sheet) {
 
 const splitReadings = (text) => text.split("/").map((s) => s.trim()).filter(Boolean);
 
-function toPoj(tl) {
+// "" when taigi-converter cannot parse the reading
+function convertReading(tl, target) {
   try {
-    return convert(tl, "tl", "poj");
+    return convert(tl, "tl", target);
   } catch {
     return "";
   }
 }
+
+// converter output pads punctuation and tone-1 syllables: "ㄍㆤ  ， ㄒㄧㄣ" → "ㄍㆤ，ㄒㄧㄣ"
+const toTps = (tl) =>
+  convertReading(tl, "zhuyin").replace(/\s*([，。；？！、])\s*/g, "$1").replace(/\s+/g, " ").trim();
 
 function addRelation(list, entryId, hanzi) {
   if (!list.some(([id, h]) => id === entryId && h === hanzi)) list.push([entryId, hanzi]);
@@ -65,7 +71,8 @@ export function buildEntries(sheets, comparisonLinks = {}) {
     if (entries.has(id)) throw new Error(`詞目: duplicate id ${id}`);
     const readingMark = READING_MARK_RE.exec(r[3])?.[1] || "";
     const tl = splitReadings(r[3].replace(READING_MARK_RE, ""));
-    const poj = tl.map(toPoj);
+    const poj = tl.map((reading) => convertReading(reading, "poj"));
+    const tps = tl.map(toTps);
     entries.set(id, {
       id,
       type: r[1],
@@ -74,6 +81,7 @@ export function buildEntries(sheets, comparisonLinks = {}) {
       readingMark,
       tl,
       poj: poj.some((reading, i) => reading && reading !== tl[i]) ? poj : [],
+      tps: tps.some(Boolean) ? tps : [],
       category: r[4] || "",
       altReadings: [],
       seeAlso: [],

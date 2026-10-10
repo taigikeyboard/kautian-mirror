@@ -12,12 +12,15 @@ export function el(tag, className, text) {
   return node;
 }
 
-// res: engine result { id, hanzi, tl, poj }
+// res: engine result { id, hanzi, tl, poj, tps, gloss }
 export function resultRow(res) {
   const row = el("a", "row");
   row.href = entryHref(res.id);
   row.append(el("span", "row-hanzi", res.hanzi), el("span", "row-roman", res.tl));
   if (res.poj && res.poj !== res.tl) row.append(el("span", "row-roman", res.poj));
+  if (res.tps) row.append(el("span", "row-roman", res.tps));
+  // source 華語釋義, ellipsized by CSS: tells look-alike rows apart (five 東區 Tang-khu)
+  if (res.gloss) row.append(el("span", "row-gloss", res.gloss));
   return row;
 }
 
@@ -98,13 +101,16 @@ function readingsLine(entry) {
   // official site places the play icon right after the romanization
   if (entry.audio) tl.append(playButton(entry.id));
   line.append(tl);
-  if (entry.poj) {
-    const poj = el("span", "reading-poj");
-    // site UI label, not source text: tells the second romanization apart from 台羅
-    poj.append(el("span", "reading-label", "POJ:"), entry.poj.join(" / "));
-    line.append(poj);
-  }
+  // site UI labels, not source text: POJ and 方音符號 are converted from 台羅
+  if (entry.poj) line.append(altReading("POJ:", entry.poj));
+  if (entry.tps) line.append(altReading("TPS:", entry.tps));
   return line;
+}
+
+function altReading(label, readings) {
+  const span = el("span", "reading-alt");
+  span.append(el("span", "reading-label", label), readings.join(" / "));
+  return span;
 }
 
 // 語音差異: accent → reading rows, as the official table lists them
