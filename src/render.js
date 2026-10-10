@@ -1,5 +1,6 @@
 // DOM builders for result rows, the result list, and entry pages (textContent only).
 import { playButton } from "./audio.js";
+import { entryActions } from "./entry-actions.js";
 
 export const entryHref = (id) => `?id=${id}`;
 export const searchHref = (query) => `?q=${encodeURIComponent(query)}`;
@@ -167,7 +168,7 @@ export function entryView(entry) {
   const head = el("header", "entry-head");
   const hanzi = el("h1", "entry-hanzi", entry.hanzi);
   if (entry.isSubstitute) hanzi.append(el("span", "mark", "【替】"));
-  head.append(hanzi, readingsLine(entry), el("p", "entry-meta", entry.type));
+  head.append(entryActions(entry), hanzi, readingsLine(entry), el("p", "entry-meta", entry.type));
   article.append(head);
 
   if (entry.senses?.length) {
