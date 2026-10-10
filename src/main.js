@@ -3,7 +3,7 @@ import { createEngine } from "../extension/src/search/engine.js";
 import { CONFIG } from "../extension/src/content/config.js";
 import { createRecency } from "../extension/src/content/recency.js";
 import { createSuggest } from "./suggest.js";
-import { entryView, resultsView, searchHref, statusView } from "./render.js";
+import { entryView, loadingView, resultsView, searchHref, statusView } from "./render.js";
 import { INDEX_PATH, bucketOf, shardPath } from "./data-paths.js";
 import { initThemeToggle } from "./theme.js";
 
@@ -93,7 +93,7 @@ async function showResults(query) {
   const seq = ++navSeq;
   const title = `${query}｜${SITE_TITLE}`;
   input.value = query;
-  show(statusView("載入中…"), { title });
+  show(loadingView(), { title });
   try {
     const loaded = await loadEngine();
     if (seq !== navSeq) return;
@@ -108,7 +108,7 @@ async function showResults(query) {
 async function showEntry(rawId) {
   const seq = ++navSeq;
   const id = Number(rawId);
-  show(statusView("載入中…"));
+  show(loadingView());
   try {
     const entry = Number.isInteger(id) && id > 0 ? await loadEntry(id) : null;
     if (seq !== navSeq) return;

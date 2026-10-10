@@ -24,15 +24,33 @@ export function resultRow(res) {
   return row;
 }
 
+const RETRY_LABEL = "閣試一擺";
+const RETRY_SVG = `<svg viewBox="0 0 20 20" aria-hidden="true">
+  <path d="M15.5 10a5.5 5.5 0 1 1-1.6-3.9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M14.5 2.75V6.5h-3.75" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+
+// message text stays; the retry action is an icon button
 export function statusView(text, retry) {
   const box = el("p", "status", text);
   if (retry) {
-    const button = el("button", "", "閣試一擺");
+    const button = el("button", "retry");
     button.type = "button";
+    button.title = RETRY_LABEL;
+    button.setAttribute("aria-label", RETRY_LABEL);
+    button.innerHTML = RETRY_SVG;
     button.addEventListener("click", retry);
     box.append(button);
   }
   return box;
+}
+
+// spinner; the card holding it shows only after a short delay (CSS), so fast loads don't flash
+export function loadingView() {
+  const spinner = el("div", "loading");
+  spinner.setAttribute("role", "status");
+  spinner.setAttribute("aria-label", "載入中");
+  return spinner;
 }
 
 // engine query() error message
