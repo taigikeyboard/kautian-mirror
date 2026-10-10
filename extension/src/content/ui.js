@@ -140,6 +140,13 @@ export function createUI({
         tps.textContent = res.tps;
         row.append(tps);
       }
+      // source 華語釋義: tells look-alike rows apart (five 東區 Tang-khu)
+      if (res.gloss) {
+        const gloss = document.createElement("span");
+        gloss.className = "stnp-gloss";
+        gloss.textContent = res.gloss;
+        row.append(gloss);
+      }
 
       box.appendChild(row);
       rows.push(row);

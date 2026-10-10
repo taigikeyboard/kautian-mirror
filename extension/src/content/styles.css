@@ -60,6 +60,16 @@
   text-overflow: ellipsis;
 }
 
+/* basis 0: takes only the room left over, so the headword never shrinks for it */
+.stnp-gloss {
+  color: #6b7280;
+  font-size: 0.8em;
+  min-width: 0;
+  flex: 1 1 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* 🎲 random-entry button beside the「搜尋」label: plain inline glyph,
    no border/background so it reads as part of the host page */
 .stnp-random {
