@@ -1,0 +1,48 @@
+name: dependabot-automerge
+
+# Dependabot PRs: build + test (no audio), then squash-merge and redeploy Pages.
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # same submodules as `make init`, without its local git-hook setup
+      - name: Init submodules
+        run: |
+          git submodule update --init vendor/kautian-extension
+          git -C vendor/kautian-extension submodule update --init vendor/taigi-converter
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+  merge:
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      # a merge made with GITHUB_TOKEN doesn't fire `push`, so pages.yml is dispatched by hand
+      actions: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      PR_URL: ${{ github.event.pull_request.html_url }}
+    steps:
+      - run: gh pr merge --squash --delete-branch "$PR_URL"
+      - run: gh workflow run pages.yml --ref main
