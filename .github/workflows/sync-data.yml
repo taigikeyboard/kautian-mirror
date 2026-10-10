@@ -1,0 +1,36 @@
+name: sync-data
+
+# Weekly: pull kautian.csv + kautian.ods from taigikeyboard; open a PR (build + test result in its
+# body) when they differ. Merge by hand; the push to main then deploys via pages.yml.
+on:
+  schedule:
+    - cron: "0 2 * * 1" # Mondays 10:00 Taiwan time
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      # credentials kept: the script pushes the sync branch
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # same submodule as `make init`, without its local git-hook setup
+      - name: Init submodule
+        run: git submodule update --init vendor/taigi-converter
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Sync from taigikeyboard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: bash scripts/sync-taigikeyboard.sh

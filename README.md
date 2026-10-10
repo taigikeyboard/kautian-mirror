@@ -48,6 +48,11 @@ startup — restart it after editing those.
 `make build` so entry pages get play buttons; without it the site works, just silently.
 Pushes to `main` deploy to GitHub Pages via `.github/workflows/pages.yml` (with audio).
 
+`extension/kautian.csv` and `extension/kautian.ods` are copies of the cleaned data in
+[taigikeyboard](https://github.com/taigikeyboard/taigikeyboard) (`dictionary/sources/official/kautian/data/`).
+`.github/workflows/sync-data.yml` checks it weekly and opens a PR with the build + test result when
+it changes; `DRY_RUN=1 bash scripts/sync-taigikeyboard.sh` previews the diff locally.
+
 ## Data updates
 
 `.github/workflows/upstream-check.yml` checks the MOE `kautian.ods` weekly and opens an issue

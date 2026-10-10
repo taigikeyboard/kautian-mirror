@@ -41,7 +41,7 @@ body="$(cat <<EOF
 
 來源：${UPSTREAM_URL}
 
-更新方式：跟 Claude 說「更新教典資料」。流程：逐列比對新舊版 → 更新 \`extension/kautian.ods\` → build + test → 抽查官方網站 → 部署。
+更新方式：在 [taigikeyboard](https://github.com/taigikeyboard/taigikeyboard) 更新 \`dictionary/sources/official/kautian/data/\`（\`raw/kautian.ods\` + 重新產生 \`kautian.csv\`）。本 repo 的 \`sync-data.yml\` 每週一會把新版開成 PR；要立刻同步就跑 \`gh workflow run sync-data.yml\`。
 EOF
 )"
 
