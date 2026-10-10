@@ -18,7 +18,7 @@ function init() {
 
   const dataUrl = extensionResourceUrl(globalThis.chrome?.runtime, CONFIG.DATA_URL);
   if (!dataUrl) {
-    console.warn("[kautian-extension] extension context unavailable; reload the page");
+    console.warn("[kautian-mirror] extension context unavailable; reload the page");
     return;
   }
 
@@ -76,7 +76,7 @@ function init() {
         loading = false;
         pendingRandom = null;
         setRandomDisabled(false);
-        console.warn("[kautian-extension] failed to load lexicon:", err.message);
+        console.warn("[kautian-mirror] failed to load lexicon:", err.message);
         ui.hide();
       });
   }

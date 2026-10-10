@@ -28,4 +28,4 @@ Taiwanese* website at <https://sutian.moe.edu.tw/>. Its sole purpose is to provi
 search suggestions for that dictionary.
 
 For questions about this privacy policy, please open an issue at
-<https://github.com/taigikeyboard/kautian-extension/issues>.
+<https://github.com/taigikeyboard/kautian-mirror/issues>.
