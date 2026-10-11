@@ -210,6 +210,27 @@ a:hover { text-decoration: underline; }
   -webkit-appearance: none;
   appearance: none;
 }
+/* "/" shortcut hint (main.js); keyboard + pointer devices only, gone once the field has focus */
+.search-hint {
+  display: none;
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 1.5rem;
+  padding: 0.0625rem 0.375rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--secondary);
+  font: 0.8125rem/1.4 var(--system-font);
+  text-align: center;
+  pointer-events: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .search-hint { display: block; }
+  .search input { padding-right: 2.75rem; }
+  .search input:focus ~ .search-hint { display: none; }
+}
 .setting select:hover { color: var(--text); }
 .setting select:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ring); }
 /* iOS-style switch */

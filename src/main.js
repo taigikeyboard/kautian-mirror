@@ -241,6 +241,16 @@ input.addEventListener("input", () => {
 });
 form.addEventListener("submit", (ev) => ev.preventDefault());
 
+// "/" jumps to the search field from anywhere outside a text field (hint: .search-hint)
+document.addEventListener("keydown", (ev) => {
+  if (ev.key !== "/" || ev.metaKey || ev.ctrlKey || ev.altKey || ev.isComposing) return;
+  const target = ev.target;
+  if (target.isContentEditable || target.closest("input, textarea, select")) return;
+  ev.preventDefault();
+  input.focus();
+  input.select();
+});
+
 // in-app links (?id= / ?q= / ./) navigate without a page load
 document.addEventListener("click", (ev) => {
   const link = ev.target.closest("a[href]");
