@@ -56,6 +56,11 @@ export function normalizeLatin(input) {
   return { pojKey, tlKey, toned, tonedTl, tonedTlNumber, hasTone };
 }
 
+// Romanized text (input or a whole sentence) → toneless TL syllables; punctuation splits
+export function tlSyllables(text) {
+  return text.split(/[^\p{L}\p{M}\p{N}]+/u).filter(Boolean).map((seg) => normalizeToTl(segNotone(seg)));
+}
+
 // Hanzi variant folding (applied on both sides; v1 starts small)
 export function foldHanzi(text) {
   return text.normalize("NFC").replaceAll("台", "臺");

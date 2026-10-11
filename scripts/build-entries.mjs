@@ -1,4 +1,5 @@
 // kautian.ods → dist/data/entries/<bucket>.json (entry pages, sharded by id)
+//   + dist/data/examples.json (例句 search, see exampleRows)
 // Zero-dependency data build for Node 22+. Reads the ODS shipped in the
 // extension's copy so headword search and entry pages share one source.
 //
@@ -23,7 +24,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { PUBLISHED_TYPES, readZipEntry, sheetRows } from "../extension/scripts/ods.mjs";
 import { convert } from "../vendor/taigi-converter/src/index.js";
-import { ENTRIES_DIR, audioPath, bucketOf, shardPath } from "../src/data-paths.js";
+import { ENTRIES_DIR, EXAMPLES_PATH, audioPath, bucketOf, shardPath } from "../src/data-paths.js";
 
 const SUBSTITUTE_MARK = "【替】";
 const READING_MARK_RE = /^【([^】]+)】/;
@@ -239,6 +240,13 @@ export function shardEntries(entries) {
 
 export const serializeShard = (shard) => JSON.stringify(shard, omitEmpty);
 
+// every published 例句 as [entryId, hanzi, tl, mandarin], by entry id then sense order
+export function exampleRows(entries) {
+  return [...entries.values()]
+    .sort((a, b) => a.id - b.id)
+    .flatMap((entry) => entry.senses.flatMap((sense) => sense.examples.map((example) => [entry.id, ...example])));
+}
+
 // published site root, same as og:url in src/index.html
 export const SITE_URL = "https://taigikeyboard.tw/kautian-mirror/";
 
@@ -293,12 +301,15 @@ function main() {
     largestGzip = Math.max(largestGzip, size);
   }
   writeFileSync(join(distDir, "sitemap.xml"), sitemapXml([...entries.keys()].sort((a, b) => a - b)));
+  const examples = exampleRows(entries);
+  writeFileSync(join(distDir, EXAMPLES_PATH), JSON.stringify(examples));
   const withoutSenses = [...entries.values()].filter((e) => !e.senses.length).length;
   const withAudio = [...entries.values()].filter((e) => e.audio).length;
   console.log([
     `entries: ${entries.size} (without senses: ${withoutSenses}, with audio: ${withAudio}) in ${buckets.size} shards`,
     `raw ${(rawBytes / 1048576).toFixed(2)} MB, gzip ${(gzipBytes / 1048576).toFixed(2)} MB, ` +
       `largest shard gzip ${(largestGzip / 1024).toFixed(0)} KB`,
+    `examples: ${examples.length}`,
     `build time: ${(performance.now() - t0).toFixed(0)} ms`,
   ].join("\n"));
 }

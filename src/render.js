@@ -57,17 +57,32 @@ export function loadingView() {
 const regexErrorText = (error) =>
   error === "too-long" ? "正規表達式傷長（上濟 64 字）" : "正規表達式無正確";
 
-export function resultsView(query, { results, error }) {
-  if (error) return statusView(regexErrorText(error));
-  if (!results.length) return statusView(`「${query}」揣無`);
-  const frag = document.createDocumentFragment();
+// example: { entryId, hanzi, tl, mandarin } from example-search.js; opens its entry
+function exampleRow(example) {
+  const row = el("a", "row example-row");
+  row.href = entryHref(example.entryId);
+  row.append(el("span", "ex-hanzi", example.hanzi), el("span", "ex-roman", example.tl));
+  if (example.mandarin) row.append(el("span", "ex-zh", example.mandarin));
+  return row;
+}
+
+function rowList(rows) {
   const list = el("ul", "results");
-  for (const res of results) {
+  for (const row of rows) {
     const item = el("li");
-    item.append(resultRow(res));
+    item.append(row);
     list.append(item);
   }
-  frag.append(list);
+  return list;
+}
+
+// examples: 例句 hits listed under the headword results (empty until data/examples.json loads)
+export function resultsView(query, { results, error }, examples = []) {
+  if (error) return statusView(regexErrorText(error));
+  if (!results.length && !examples.length) return statusView(`「${query}」揣無`);
+  const frag = document.createDocumentFragment();
+  if (results.length) frag.append(rowList(results.map(resultRow)));
+  if (examples.length) frag.append(el("h2", "results-heading", "例句"), rowList(examples.map(exampleRow)));
   return frag;
 }
 

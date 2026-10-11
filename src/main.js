@@ -4,10 +4,12 @@ import { CONFIG } from "../extension/src/content/config.js";
 import { createRecency } from "../extension/src/content/recency.js";
 import { createSuggest } from "./suggest.js";
 import { entryView, loadingView, resultsView, searchHref, statusView } from "./render.js";
-import { INDEX_PATH, bucketOf, shardPath } from "./data-paths.js";
+import { createExampleSearch } from "./example-search.js";
+import { EXAMPLES_PATH, INDEX_PATH, bucketOf, shardPath } from "./data-paths.js";
 import { initThemeToggle } from "./theme.js";
 
 const RESULTS_LIMIT = 200;
+const EXAMPLES_LIMIT = 5;
 const SITE_TITLE = "教典備援網站";
 const HOME_TITLE = "教典備援網站";
 
@@ -60,6 +62,17 @@ function loadEngine() {
   return enginePromise;
 }
 
+let exampleSearchPromise = null;
+function loadExampleSearch() {
+  exampleSearchPromise ??= fetchJson(EXAMPLES_PATH)
+    .then(createExampleSearch)
+    .catch((err) => {
+      exampleSearchPromise = null;
+      throw err;
+    });
+  return exampleSearchPromise;
+}
+
 const shardPromises = new Map();
 function loadEntry(id) {
   const bucket = bucketOf(id);
@@ -94,14 +107,27 @@ async function showResults(query) {
   const title = `${query}｜${SITE_TITLE}`;
   input.value = query;
   show(loadingView(), { title });
+  // 例句 load alongside the index; headword results show first, 例句 join them once loaded
+  loadExampleSearch().catch(() => {});
+  let headwords;
   try {
     const loaded = await loadEngine();
     if (seq !== navSeq) return;
-    show(resultsView(query, loaded.query(query, { limit: RESULTS_LIMIT, recencyRank: recency.rankOf })), { title });
+    headwords = loaded.query(query, { limit: RESULTS_LIMIT, recencyRank: recency.rankOf });
+    show(resultsView(query, headwords), { title });
   } catch (err) {
     if (seq !== navSeq) return;
     console.warn("index.load.failed", err.message);
     show(statusView("詞典資料載入失敗", () => showResults(query)));
+    return;
+  }
+  try {
+    const examples = (await loadExampleSearch()).search(query, EXAMPLES_LIMIT);
+    if (seq !== navSeq || !examples.length) return;
+    show(resultsView(query, headwords, examples), { title });
+  } catch (err) {
+    // headword results stay; the next search retries the 例句 load
+    console.warn("examples.load.failed", err.message);
   }
 }
 

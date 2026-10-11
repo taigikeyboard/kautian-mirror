@@ -225,6 +225,10 @@ h1 {
 .results { list-style: none; margin: -0.5rem -0.75rem; padding: 0; }
 .results li + li { border-top: 1px solid var(--hairline); }
 .results .row { padding: 0.875rem 0.75rem; }
+/* 例句 hits under the headword results: sentence, romanization, 華語 stacked */
+.results-heading { margin: 1.75rem 0 1rem; color: var(--secondary); font-size: 15px; font-weight: normal; }
+.results-heading:first-child { margin-top: 0; }
+.example-row { flex-direction: column; gap: 0.125rem; }
 
 /* --- entry --- */
 .entry-head { position: relative; }
