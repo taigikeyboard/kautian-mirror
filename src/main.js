@@ -9,7 +9,6 @@ import { createExampleSearch } from "./example-search.js";
 import { EXAMPLES_PATH, INDEX_PATH, bucketOf, shardPath } from "./data-paths.js";
 import { initSettings } from "./settings.js";
 import { initSidebar } from "./sidebar.js";
-import { initThemeToggle } from "./theme.js";
 
 const RESULTS_LIMIT = 200;
 const EXAMPLES_LIMIT = 5;
@@ -253,7 +252,6 @@ document.addEventListener("click", (ev) => {
   navigate(href);
 });
 
-initThemeToggle(document.querySelector(".theme-toggle"));
 initSettings(document.getElementById("settings"), localArea);
 initSidebar(document.querySelector(".sidebar-toggle"), document.getElementById("sidebar"), localArea);
 window.addEventListener("popstate", route);

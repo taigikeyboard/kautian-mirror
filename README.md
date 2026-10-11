@@ -10,15 +10,19 @@ Live: <https://taigikeyboard.tw/kautian-mirror/>
 
 - One search box with live suggestions: Hanzi, Tâi-lô (tone marks, tone numbers, or toneless),
   Pe̍h-ōe-jī, Zhuyin keyboard input, Taiwanese Phonetic Symbols, abbreviations, raw regex
-- Entry pages: readings (TL + auto-converted POJ), senses, examples, alternative readings,
+- Entry pages: readings (TL + auto-converted POJ and 方音符號), senses, examples, alternative readings,
   variant characters, 又見音 (same-hanzi entries), synonyms and antonyms, 語音差異 (accent readings),
-  詞彙比較 (per-accent vocabulary tables), word audio (fetched only when the speaker button is clicked)
-- Entry actions: copy the headword (`漢字 台羅`), share the entry link (system share sheet, else
+  詞彙比較 (per-accent vocabulary tables; both tables also show converted POJ / 方音符號), word audio
+  (fetched only when the speaker button is clicked)
+- Entry actions: 收藏 (bookmark), copy the headword (`漢字 台羅`), share the entry link (system share sheet, else
   clipboard), and a word card — a PNG of the headword, readings and definitions with the source
   credit, shared as a file where the browser supports it, otherwise downloaded
 - Shareable URLs: `?q=<query>` for a result list, `?id=<entry id>` for an entry (same ids as the
   official site)
-- Light / dark theme follows the system; the header toggle pins one
+- Left sidebar (docked on wide screens, the top-left button slides it away; a drawer on phones):
+  外觀 (自動 / 淺色 / 深色), 字型 (系統, 粉圓, 芫荽, 源樣明體, 源樣烏體 — the taigikeyboard roster,
+  CJK-subset by `scripts/subset-fonts.sh`), 白話字 / 方音符號 switches, and the 收藏 list. All of it
+  lives in this browser's localStorage only
 - SEO: `dist/sitemap.xml` lists home + every entry URL (entry pages are client-rendered, so
   crawlers can't reach them by links); result pages, missing entries and errors get `noindex`
 

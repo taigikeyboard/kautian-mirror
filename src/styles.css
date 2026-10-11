@@ -37,7 +37,7 @@
     U+F900-FAFF, U+FF00-FFEF, U+20000-2FFFF;
 }
 
-/* Follows the system theme; the header toggle pins one via <html data-theme>. */
+/* Follows the system theme unless the sidebar's 外觀 pins one via <html data-theme> ("auto" pins none). */
 :root { color-scheme: light dark; }
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }
@@ -118,18 +118,8 @@ a:hover { text-decoration: underline; }
 .corner-button:hover { color: var(--text); }
 .corner-button svg { width: 18px; height: 18px; }
 
-/* --- corner buttons: sidebar (top left), theme toggle (top right) --- */
-.sidebar-toggle, .theme-toggle { position: fixed; top: 0.75rem; z-index: 20; }
-.sidebar-toggle { left: 0.75rem; }
-.theme-toggle { right: 0.75rem; }
-/* show the icon of the theme a click switches to */
-.theme-toggle .icon-sun { display: none; }
-:root[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
-:root[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .theme-toggle .icon-sun { display: block; }
-  :root:not([data-theme="light"]) .theme-toggle .icon-moon { display: none; }
-}
+/* --- sidebar toggle (top left) --- */
+.sidebar-toggle { position: fixed; top: 0.75rem; left: 0.75rem; z-index: 20; }
 
 /* --- left sidebar: page-coloured with a hairline edge, holding an inset grouped card like macOS
    System Settings. Wide screens dock it beside the page and the corner button slides it away;

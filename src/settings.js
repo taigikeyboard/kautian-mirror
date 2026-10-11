@@ -1,4 +1,4 @@
-// Display settings panel (字型, 白話字, 方音符號): each choice is a <html data-*>
+// Display settings panel (外觀, 字型, 白話字, 方音符號): each choice is a <html data-*>
 // attribute styles.css keys on, saved under "settings"; index.html re-applies it before first paint.
 
 // checkboxes store "on" / "off" so every setting is a plain data-* string
