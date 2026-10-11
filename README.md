@@ -20,7 +20,7 @@ Live: <https://taigikeyboard.tw/kautian-mirror/>
 - Shareable URLs: `?q=<query>` for a result list, `?id=<entry id>` for an entry (same ids as the
   official site)
 - Left sidebar (docked on wide screens, the top-left button slides it away; a drawer on phones):
-  外觀 (自動 / 淺色 / 深色), 字型 (系統, 粉圓, 芫荽, 源樣明體, 源樣烏體 — the taigikeyboard roster,
+  外觀 (自動 / 淺色 / 暗色), 字型 (系統, 粉圓, 芫荽, 源樣明體, 源樣烏體 — the taigikeyboard roster,
   CJK-subset by `scripts/subset-fonts.sh`), 白話字 / 方音符號 switches, and the 收藏 list. All of it
   lives in this browser's localStorage only
 - SEO: `dist/sitemap.xml` lists home + every entry URL (entry pages are client-rendered, so
