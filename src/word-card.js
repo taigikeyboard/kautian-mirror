@@ -3,7 +3,7 @@ const CARD_WIDTH = 1080;
 const PADDING = 96;
 const CONTENT_WIDTH = CARD_WIDTH - PADDING * 2;
 // light palette from styles.css, so a shared card looks the same whatever the viewer's theme
-const COLORS = { background: "#ffffff", text: "#1d1d1f", secondary: "#86868b", hairline: "#e8e8ed" };
+const COLORS = { background: "#ffffff", text: "#1d1d1f", secondary: "#6e6e73", hairline: "#e8e8ed" };
 const STYLES = {
   hanzi: { size: 120, weight: 700, color: COLORS.text, lineHeight: 1.25 },
   mark: { size: 48, weight: 400, color: COLORS.secondary, lineHeight: 1.25 },
