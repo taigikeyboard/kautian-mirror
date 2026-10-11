@@ -17,8 +17,9 @@ export function resultRow(res) {
   const row = el("a", "row");
   row.href = entryHref(res.id);
   row.append(el("span", "row-hanzi", res.hanzi), el("span", "row-roman", res.tl));
-  if (res.poj && res.poj !== res.tl) row.append(el("span", "row-roman", res.poj));
-  if (res.tps) row.append(el("span", "row-roman", res.tps));
+  // poj / tps classes: hidden by the 白話字 / 方音符號 settings (styles.css)
+  if (res.poj && res.poj !== res.tl) row.append(el("span", "row-roman poj", res.poj));
+  if (res.tps) row.append(el("span", "row-roman tps", res.tps));
   // source 華語釋義, ellipsized by CSS: tells look-alike rows apart (five 東區 Tang-khu)
   if (res.gloss) row.append(el("span", "row-gloss", res.gloss));
   return row;
@@ -140,15 +141,27 @@ function readingsLine(entry) {
   if (entry.audio) tl.append(playButton(entry.id));
   line.append(tl);
   // site UI labels, not source text: POJ and 方音符號 are converted from 台羅
-  if (entry.poj) line.append(altReading("POJ:", entry.poj));
-  if (entry.tps) line.append(altReading("TPS:", entry.tps));
+  if (entry.poj) line.append(altReading("POJ:", entry.poj, "poj"));
+  if (entry.tps) line.append(altReading("TPS:", entry.tps, "tps"));
   return line;
 }
 
-function altReading(label, readings) {
-  const span = el("span", "reading-alt");
+function altReading(label, readings, kind) {
+  const span = el("span", `reading-alt ${kind}`);
   span.append(el("span", "reading-label", label), readings.join(" / "));
   return span;
+}
+
+// table cell for a 語音差異 / 詞彙比較 reading: source 台羅, then converted POJ (when it
+// differs) and 方音符號, unlabeled like the search result rows
+function readingCell(tl, poj, tps) {
+  const td = el("td");
+  const set = el("span", "reading-set");
+  set.append(el("span", "", tl));
+  if (poj) set.append(el("span", "reading-alt poj", poj));
+  if (tps) set.append(el("span", "reading-alt tps", tps));
+  td.append(set);
+  return td;
 }
 
 // 語音差異: accent → reading rows, as the official table lists them
@@ -157,14 +170,14 @@ function dialectTable(dialectReadings) {
   const table = el("table", "dialects");
   const body = el("tbody");
   for (const [accent, readings] of dialectReadings) {
-    readings.forEach((tl, i) => {
+    readings.forEach((reading, i) => {
       const row = el("tr");
       if (i === 0) {
         const th = el("th", "", accent);
         th.rowSpan = readings.length;
         row.append(th);
       }
-      row.append(el("td", "", tl));
+      row.append(readingCell(...reading));
       body.append(row);
     });
   }
@@ -185,7 +198,7 @@ function comparisonTables(comparisons) {
     head.append(headRow);
     table.append(head);
     const body = el("tbody");
-    rows.forEach(([accent, hanzi, tl], i) => {
+    rows.forEach(([accent, hanzi, ...reading], i) => {
       const row = el("tr");
       if (accent !== rows[i - 1]?.[0]) {
         const th = el("th", "", accent);
@@ -195,7 +208,7 @@ function comparisonTables(comparisons) {
         th.rowSpan = span;
         row.append(th);
       }
-      row.append(el("td", "", hanzi), el("td", "", tl));
+      row.append(el("td", "", hanzi), readingCell(...reading));
       body.append(row);
     });
     table.append(body);

@@ -11,9 +11,10 @@
 //     audio (dist/audio/ has its word mp3; run `npm run build:audio` first),
 //     altReadings: [[kind, [tl]]], variants: [hanzi],
 //     seeAlso: [[entryId, label]] (又見音: other entries with the same hanzi),
-//     dialectReadings: [[accent, [tl]]] (語音差異, sheet column order; empty accents dropped),
-//     comparisons: [{ mandarin, rows: [[accent, hanzi, tl]] }] (詞彙比較 tables linked to this
-//       entry by data/comparison-links.json, see scripts/fetch-comparisons.mjs; rows in accent order),
+//     dialectReadings: [[accent, [[tl, poj, tps]]]] (語音差異, sheet column order; empty accents dropped),
+//     comparisons: [{ mandarin, rows: [[accent, hanzi, tl, poj, tps]] }] (詞彙比較 tables linked to this
+//       entry by data/comparison-links.json, see scripts/fetch-comparisons.mjs; rows in accent order;
+//       table poj is "" when it equals tl, like the entry's own poj),
 //     synonyms/antonyms: [[entryId | null, label]] (linked: entryLabel of the target; unlinked: hanzi),
 //     senses: [{ pos, definition, examples: [[hanzi, tl, mandarin]], synonyms, antonyms }] }
 // Relation targets whose entry is not published (近反義詞不單列詞目者) keep their
@@ -55,6 +56,12 @@ function convertReading(tl, target) {
 // converter output pads punctuation and tone-1 syllables: "ㄍㆤ  ， ㄒㄧㄣ" → "ㄍㆤ，ㄒㄧㄣ"
 const toTps = (tl) =>
   convertReading(tl, "zhuyin").replace(/\s*([，。；？！、])\s*/g, "$1").replace(/\s+/g, " ").trim();
+
+// [poj, tps] shown beside a 語音差異 / 詞彙比較 reading
+function altRomanizations(tl) {
+  const poj = convertReading(tl, "poj");
+  return [poj === tl ? "" : poj, toTps(tl)];
+}
 
 function addRelation(list, entryId, hanzi) {
   if (!list.some(([id, h]) => id === entryId && h === hanzi)) list.push([entryId, hanzi]);
@@ -153,7 +160,7 @@ export function buildEntries(sheets, comparisonLinks = {}) {
     if (!entry) continue;
     // a cell lists several readings as "moo,mn̂g"; the official table gives each its own row
     entry.dialectReadings = accents
-      .map((accent, i) => [accent, splitDialectReadings(r[i + 2])])
+      .map((accent, i) => [accent, splitDialectReadings(r[i + 2]).map((tl) => [tl, ...altRomanizations(tl)])])
       .filter(([, readings]) => readings.length);
   }
   // 詞彙比較: keyed by 華語詞目id; which entries show a table comes from comparisonLinks
@@ -161,7 +168,7 @@ export function buildEntries(sheets, comparisonLinks = {}) {
   for (const [id, mandarin, accent, hanzi, tl] of rows("詞彙比較")) {
     const key = parseId(id, "詞彙比較");
     if (!tables.has(key)) tables.set(key, { mandarin, rows: [] });
-    tables.get(key).rows.push([accent, hanzi, tl]);
+    tables.get(key).rows.push([accent, hanzi, tl, ...altRomanizations(tl)]);
   }
   // official tables list accents in 語音差異 column order (stable within an accent)
   const accentOrder = (accent) => {

@@ -87,8 +87,12 @@ test("buildEntries_dialectSheet_readingsPerAccentInColumnOrder", () => {
     語音差異: [["詞目id", "漢字", "鹿港偏泉腔", "宜蘭偏漳腔", "臺中偏漳腔"],
       ["49", "八", "pueh", "moo,mn̂g", ""], ["50", "刀仔", "to", "to", "to"]],
   });
-  // trace: official 毛 page splits "moo,mn̂g" into two rows; 頭 omits its empty 臺中偏漳腔
-  assert.deepEqual(entries.get(49).dialectReadings, [["鹿港偏泉腔", ["pueh"]], ["宜蘭偏漳腔", ["moo", "mn̂g"]]]);
+  // trace: official 毛 page splits "moo,mn̂g" into two rows; 頭 omits its empty 臺中偏漳腔;
+  // converter: pueh→poeh ㄅㄨㆤㆷ, moo→mo͘ ㄇㆦ, mn̂g→mn̂g (same as tl, so "") ㄇㆭˊ
+  assert.deepEqual(entries.get(49).dialectReadings, [
+    ["鹿港偏泉腔", [["pueh", "poeh", "ㄅㄨㆤㆷ"]]],
+    ["宜蘭偏漳腔", [["moo", "mo͘", "ㄇㆦ"], ["mn̂g", "", "ㄇㆭˊ"]]],
+  ]);
   assert.deepEqual(entries.get(1).dialectReadings, []);
 });
 
@@ -103,10 +107,17 @@ test("buildEntries_comparisonLinks_attachTablesWithRowsInAccentOrder", () => {
       ["118", "工具", "臺北偏泉腔", "家私頭仔", "ke-si-thâu-á"],
     ],
   }, { 1: [118, 16], 50: [16] });
-  // trace: official 一百空一 page lists 鹿港 before 臺中 though the sheet has 臺中 first
+  // trace: official 一百空一 page lists 鹿港 before 臺中 though the sheet has 臺中 first;
+  // converter: ke-si / ke-si-thâu-á POJ same as tl (""), tsi̍t → chi̍t
   assert.deepEqual(entries.get(1).comparisons, [
-    { mandarin: "工具", rows: [["臺北偏泉腔", "家私", "ke-si"], ["臺北偏泉腔", "家私頭仔", "ke-si-thâu-á"]] },
-    { mandarin: "一百零一", rows: [["鹿港偏泉腔", "一百空一", "tsi̍t-pah khòng tsi̍t"], ["臺中偏漳腔", "一百空一", "tsi̍t-pah khòng it"]] },
+    { mandarin: "工具", rows: [
+      ["臺北偏泉腔", "家私", "ke-si", "", "ㄍㆤ ㄒㄧ"],
+      ["臺北偏泉腔", "家私頭仔", "ke-si-thâu-á", "", "ㄍㆤ ㄒㄧ ㄊㄠˊ ㄚˋ"],
+    ] },
+    { mandarin: "一百零一", rows: [
+      ["鹿港偏泉腔", "一百空一", "tsi̍t-pah khòng tsi̍t", "chi̍t-pah khòng chi̍t", "ㄐㄧㆵ̇ ㄅㄚㆷ ㄎㆲ˪ ㄐㄧㆵ̇"],
+      ["臺中偏漳腔", "一百空一", "tsi̍t-pah khòng it", "chi̍t-pah khòng it", "ㄐㄧㆵ̇ ㄅㄚㆷ ㄎㆲ˪ ㄧㆵ"],
+    ] },
   ]);
   assert.deepEqual(entries.get(49).comparisons, []);
   assert.throws(() => buildEntries(fixture, { 1: [999] }), /missing 華語詞目id 999/);

@@ -20,10 +20,16 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://taigikeyboard.tw/kautian-mirror/og-image.png?v=3">
   <script>
-    // apply a pinned theme before first paint (see src/theme.js)
+    // apply a pinned theme and the display settings before first paint (see src/theme.js, src/settings.js)
     try {
+      const root = document.documentElement;
       const theme = localStorage.getItem("theme");
-      if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+      if (theme === "light" || theme === "dark") root.dataset.theme = theme;
+      if (JSON.parse(localStorage.getItem("sidebar")) === "closed") root.dataset.sidebar = "closed";
+      const settings = JSON.parse(localStorage.getItem("settings")) || {};
+      for (const [name, value] of Object.entries(settings)) {
+        if (typeof value === "string") root.dataset[name] = value;
+      }
     } catch {}
   </script>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -31,7 +37,13 @@
   <script type="module" src="app.js"></script>
 </head>
 <body>
-  <button class="theme-toggle" type="button" aria-label="切換深淺色模式" title="切換深淺色模式">
+  <button class="corner-button sidebar-toggle" type="button" aria-controls="sidebar" aria-label="側邊欄" title="側邊欄">
+    <svg viewBox="0 0 20 20" aria-hidden="true">
+      <rect x="2.75" y="4" width="14.5" height="12" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M7.75 4v12" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    </svg>
+  </button>
+  <button class="corner-button theme-toggle" type="button" aria-label="切換深淺色模式" title="切換深淺色模式">
     <svg class="icon-moon" viewBox="0 0 20 20" aria-hidden="true">
       <path d="M16.5 12.2A7 7 0 0 1 7.8 3.5a7 7 0 1 0 8.7 8.7z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
     </svg>
@@ -40,6 +52,35 @@
       <path d="M10 1.75v2M10 16.25v2M1.75 10h2M16.25 10h2M4.17 4.17l1.41 1.41M14.42 14.42l1.41 1.41M4.17 15.83l1.41-1.41M14.42 5.58l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
     </svg>
   </button>
+  <!-- left sidebar: docked on wide screens (src/sidebar.js slides it away); on narrow ones a popover,
+       so outside click / Esc close it -->
+  <aside id="sidebar" class="sidebar" popover aria-label="側邊欄">
+    <div class="sidebar-close">
+      <button class="corner-button" type="button" popovertarget="sidebar" popovertargetaction="hide" aria-label="關" title="關">
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M5 5l10 10M15 5L5 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <!-- the markup's selected / checked values are the defaults (src/settings.js) -->
+    <form id="settings" class="settings" aria-label="設定">
+      <label class="setting">字型
+        <select name="font">
+          <option value="system">系統</option>
+          <option value="openhuninn" selected>粉圓</option>
+          <option value="iansui">芫荽</option>
+          <option value="genyomin">源樣明體</option>
+          <option value="genyogothic">源樣烏體</option>
+        </select>
+      </label>
+      <label class="setting">白話字
+        <input type="checkbox" name="poj" role="switch" checked>
+      </label>
+      <label class="setting">方音符號
+        <input type="checkbox" name="tps" role="switch" checked>
+      </label>
+    </form>
+  </aside>
   <header class="masthead">
     <h1><a class="wordmark" href="./" data-nav>教典備援網站</a></h1>
     <form class="search" role="search" autocomplete="off">

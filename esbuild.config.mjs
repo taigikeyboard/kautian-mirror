@@ -28,9 +28,13 @@ cpSync("src/og-image.png", "dist/og-image.png");
 // same typeface as taigikeyboard.tw/taigi-converter (jf open 粉圓, SIL OFL 1.1)
 mkdirSync("dist/fonts", { recursive: true });
 cpSync("vendor/taigi-converter/jf-openhuninn-2.1.ttf", "dist/fonts/jf-openhuninn-2.1.ttf");
-// ship the MIT license text with the bundle
+// settings-panel typefaces, the taigikeyboard roster (芫荽, 源樣明體, 源樣烏體; SIL OFL 1.1),
+// CJK-subset by scripts/subset-fonts.sh
+cpSync("fonts", "dist/fonts", { recursive: true, filter: (path) => !path.endsWith(".txt") });
+// ship the MIT and OFL license texts with the bundle
 mkdirSync("dist/licenses", { recursive: true });
 cpSync("LICENSE", "dist/licenses/kautian-mirror.txt");
+cpSync("fonts/OFL-1.1.txt", "dist/licenses/fonts-OFL-1.1.txt");
 
 if (process.argv.includes("--serve")) {
   const ctx = await context(options);

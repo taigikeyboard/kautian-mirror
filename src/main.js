@@ -6,6 +6,8 @@ import { createSuggest } from "./suggest.js";
 import { entryView, loadingView, resultsView, searchHref, statusView } from "./render.js";
 import { createExampleSearch } from "./example-search.js";
 import { EXAMPLES_PATH, INDEX_PATH, bucketOf, shardPath } from "./data-paths.js";
+import { initSettings } from "./settings.js";
+import { initSidebar } from "./sidebar.js";
 import { initThemeToggle } from "./theme.js";
 
 const RESULTS_LIMIT = 200;
@@ -239,6 +241,8 @@ document.addEventListener("click", (ev) => {
 });
 
 initThemeToggle(document.querySelector(".theme-toggle"));
+initSettings(document.getElementById("settings"), localArea);
+initSidebar(document.querySelector(".sidebar-toggle"), document.getElementById("sidebar"), localArea);
 window.addEventListener("popstate", route);
 route();
 // warm the search index while the home page sits idle, so the first keystroke is instant

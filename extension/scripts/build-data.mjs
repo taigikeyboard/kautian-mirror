@@ -141,7 +141,7 @@ function loadAliases(forms, entries) {
   };
   for (const entry of entries.values()) {
     for (const [, readings] of entry.dialectReadings) {
-      for (const roman of readings) add(entry.id, roman, entry.hanzi, false);
+      for (const [roman] of readings) add(entry.id, roman, entry.hanzi, false);
     }
     for (const { rows } of entry.comparisons) {
       for (const [, hanzi, roman] of rows) add(entry.id, roman, hanzi, true);
