@@ -27,7 +27,7 @@
       // returning readers have re-saved (settings.theme, applied below, overrides it)
       const legacyTheme = localStorage.getItem("theme");
       if (legacyTheme === "light" || legacyTheme === "dark") root.dataset.theme = legacyTheme;
-      if (JSON.parse(localStorage.getItem("sidebar")) === "closed") root.dataset.sidebar = "closed";
+      if (JSON.parse(localStorage.getItem("sidebar")) === "open") root.dataset.sidebar = "open";
       const settings = JSON.parse(localStorage.getItem("settings")) || {};
       for (const [name, value] of Object.entries(settings)) {
         if (typeof value === "string") root.dataset[name] = value;

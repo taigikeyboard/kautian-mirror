@@ -145,20 +145,22 @@ a:hover { text-decoration: underline; }
 .sidebar::backdrop { background: rgba(0, 0, 0, 0.3); }
 .sidebar-close { display: flex; justify-content: flex-end; margin: -0.25rem -0.5rem 0 0; }
 @media (min-width: 50rem) {
-  /* docked: overrides the UA's display: none for a closed popover; top padding clears the toggle */
+  /* docked, collapsed by default: slid out left and hidden (its controls leave the tab order);
+     display: block overrides the UA's display: none for a closed popover so it can slide;
+     top padding clears the toggle */
   .sidebar {
     position: fixed;
     display: block;
     padding-top: 3.5rem;
-    transform: none;
     box-shadow: none;
+    visibility: hidden;
     transition: transform 0.25s ease, visibility 0.25s;
   }
   .sidebar-close { display: none; }
-  body { padding-left: calc(var(--sidebar-width) + 1.5rem); transition: padding-left 0.25s ease; }
-  /* collapsed: slid out left (hidden, so its controls leave the tab order), page re-centres */
-  :root[data-sidebar="closed"] .sidebar { transform: translateX(-100%); visibility: hidden; }
-  :root[data-sidebar="closed"] body { padding-left: 1.5rem; }
+  body { transition: padding-left 0.25s ease; }
+  /* opened with the toggle: slides in and the page makes room */
+  :root[data-sidebar="open"] .sidebar { transform: none; visibility: visible; }
+  :root[data-sidebar="open"] body { padding-left: calc(var(--sidebar-width) + 1.5rem); }
 }
 
 
