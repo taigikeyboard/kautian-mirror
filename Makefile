@@ -17,7 +17,8 @@ install:
 audio:
 	npm run build:audio
 
-# kautian.csv + kautian.ods ← taigikeyboard main (needs gh + curl); then `make build test`
+# kautian.csv + kautian.ods ← taigikeyboard main (needs gh + curl, clean main); on change:
+# bump ext patch version, package + test, open PR, attach zip to a draft GitHub Release
 sync-data:
 	bash scripts/sync-taigikeyboard.sh
 
