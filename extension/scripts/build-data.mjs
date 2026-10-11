@@ -1,8 +1,7 @@
-// kautian.csv + kautian.ods → data/kautian.min.json (format v5) + data/build-report.txt
+// kautian.csv + kautian.ods + word_unigrams.tsv → data/kautian.min.json (format v6) + data/build-report.txt
 // Zero-dependency data build for Node 22+.
 //
-// Format v5 = v2 (string-pool, runtime-derived notone/zhu) + entry ids + gloss,
-// no frequency column (ranking does not use word frequency):
+// Format v6 = v2 (string-pool, runtime-derived notone/zhu) + entry ids + gloss + pop:
 // - Every shipped row is joined to a dictionary entry id from kautian.ods
 //   (詞目 sheet + variant-reading sheets 又唸作/俗唸作/合音唸作 + variant-spelling
 //   sheet 異用字), so the UI can link straight to /su/<id>/.
@@ -15,6 +14,9 @@
 //   (FLAG.ALIAS; FLAG.COMPARISON): searchable, displayed as their entry headword.
 // - gloss: the entry's first 華語釋義, cut to GLOSS_LENGTH, so look-alike rows
 //   (five 附錄 東區 Tang-khu) can be told apart in the dropdown.
+// - pop: the entry's popularity rank (0 = most used), from taigikeyboard's corpus word counts
+//   (word_unigrams.tsv, summed over the entry's forms) with the CSV `frequency` as tiebreak;
+//   entries with equal counts share a rank.
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 import { fileURLToPath } from "node:url";
@@ -29,12 +31,13 @@ import { convert, toToneNumber } from "../../vendor/taigi-converter/src/index.js
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC_CSV = join(ROOT, "kautian.csv");
 const SRC_ODS = join(ROOT, "kautian.ods");
+const SRC_UNIGRAMS = join(ROOT, "word_unigrams.tsv");
 const OUT_DIR = join(ROOT, "data");
 const OUT_JSON = join(OUT_DIR, "kautian.min.json");
 const OUT_REPORT = join(OUT_DIR, "build-report.txt");
 
-// --- minimal RFC4180 parser ---
-function parseCsv(text) {
+// --- minimal RFC4180 parser (delimiter "\t" reads TSV) ---
+function parseCsv(text, delimiter = ",") {
   const rows = [];
   let row = [];
   let field = "";
@@ -48,7 +51,7 @@ function parseCsv(text) {
       } else field += c;
     } else if (c === '"') {
       inQuotes = true;
-    } else if (c === ",") {
+    } else if (c === delimiter) {
       row.push(field); field = "";
     } else if (c === "\n" || c === "\r") {
       if (c === "\r" && text[i + 1] === "\n") i++;
@@ -152,13 +155,17 @@ const t0 = performance.now();
 const entries = buildEntries(readSheets(SRC_ODS), readComparisonLinks());
 const { forms: odsForms, aliases } = loadOdsForms(entries);
 
+// header row → column lookup that fails loudly on a missing column
+function columns(header, file) {
+  const col = Object.fromEntries(header.map((h, i) => [h, i]));
+  return (name) => {
+    if (!(name in col)) throw new Error(`${file} is missing column: ${name}`);
+    return col[name];
+  };
+}
+
 const rows = parseCsv(readFileSync(SRC_CSV, "utf8"));
-const header = rows.shift();
-const col = Object.fromEntries(header.map((h, i) => [h, i]));
-const need = (name) => {
-  if (!(name in col)) throw new Error(`kautian.csv is missing column: ${name}`);
-  return col[name];
-};
+const need = columns(rows.shift(), "kautian.csv");
 
 // Shipped columns (string-pool)
 const SHIP = {
@@ -171,6 +178,28 @@ const QA_COLS = {
   tlNotone: need("tl_notone"), pojNotone: need("poj_notone"), tpsNotone: need("tps_notone"),
 };
 const iMain = need("kautian_main");
+const iFrequency = need("frequency");
+
+// corpus word counts: form key → count summed over the corpora
+function loadCorpusCounts() {
+  const [header, ...lines] = parseCsv(readFileSync(SRC_UNIGRAMS, "utf8"), "\t");
+  const [hanji, tl, count] = ["hanji", "tl", "count"].map(columns(header, "word_unigrams.tsv"));
+  const counts = new Map();
+  for (const c of lines) {
+    const k = formKey(keyRoman(c[tl]), normHanzi(c[hanji]));
+    counts.set(k, (counts.get(k) || 0) + Number(c[count]));
+  }
+  return counts;
+}
+const corpusCounts = loadCorpusCounts();
+// entry id → { forms: Set(form key), frequency: max CSV frequency }; alias rows never count
+const usage = new Map();
+const noteUsage = (id, k, frequency) => {
+  if (!usage.has(id)) usage.set(id, { forms: new Set(), frequency: 0 });
+  const u = usage.get(id);
+  u.forms.add(k);
+  u.frequency = Math.max(u.frequency, frequency);
+};
 
 // Match the target site's regex representation: numeric tones with every
 // syllable separator normalized to one space.
@@ -208,6 +237,7 @@ for (const r of rows) {
     for (const name of Object.keys(SHIP)) cols[name].push(values[name]);
     ids.push(hit.id);
     flags.push((get(iMain) === "True" ? FLAG.MAIN : 0) | (hit.variant ? FLAG.VARIANT : 0));
+    noteUsage(hit.id, k, Number(get(iFrequency)) || 0);
   }
 
   // QA: runtime derivation vs CSV (hard gate)
@@ -263,6 +293,7 @@ for (const [k, byId] of odsForms) {
   if (covered.has(k)) continue;
   for (const form of byId.values()) {
     pushSynthesized(form.tl, form.hanzi, form.id, form.variant ? FLAG.VARIANT : FLAG.MAIN);
+    noteUsage(form.id, k, 0);
     synthesized++;
   }
 }
@@ -278,7 +309,22 @@ const count = cols.tl.length;
 // the UI ellipsizes by width; the cut only bounds the index size
 const GLOSS_LENGTH = 30;
 const glossOf = (id) => (entries.get(id).senses[0]?.definition || "").trim().slice(0, GLOSS_LENGTH);
-const out = { meta: { source: "kautian.csv+ods", count, format: 5 }, id: ids, flags };
+// dense popularity rank over [id, corpus, frequency], most used first; ties share a rank
+const scored = [...usage].map(([id, { forms, frequency }]) => {
+  let corpus = 0;
+  for (const k of forms) corpus += corpusCounts.get(k) || 0;
+  return [id, corpus, frequency];
+}).sort((a, b) => b[1] - a[1] || b[2] - a[2]);
+const popOf = new Map();
+let rank = -1;
+scored.forEach(([id, corpus, frequency], j) => {
+  if (j === 0 || corpus !== scored[j - 1][1] || frequency !== scored[j - 1][2]) rank++;
+  popOf.set(id, rank);
+});
+const pop = ids.map((id) => popOf.get(id));
+const corpusHits = scored.filter(([, corpus]) => corpus > 0).length;
+
+const out = { meta: { source: "kautian.csv+ods+word_unigrams.tsv", count, format: 6 }, id: ids, flags, pop };
 for (const k of Object.keys(SHIP)) out[k] = cols[k].join("\n");
 // alias rows display their head row, so their own gloss would never show
 out.gloss = ids.map((id, i) => (flags[i] & FLAG.ALIAS ? "" : glossOf(id))).join("\n");
@@ -296,8 +342,9 @@ const mismatchLines = Object.entries(qa.mismatch).flatMap(([name, list]) => [
 ]);
 const report = [
   `build-data report — ${new Date().toISOString()}`,
-  `format: 5 (string-pool + entry ids + gloss, runtime-derived notone/zhu, no frequency)`,
+  `format: 6 (string-pool + entry ids + gloss + pop, runtime-derived notone/zhu)`,
   `entries (rows): ${count} — distinct entry ids: ${new Set(ids).size}`,
+  `pop: ${corpusHits} / ${scored.length} entries seen in the corpus, ${rank + 1} distinct ranks`,
   `ODS headword form keys: ${odsForms.size} (csv-covered: ${covered.size}, synthesized: ${synthesized})`,
   `alias rows: ${aliases.length} (語音差異: ${aliases.length - comparisonAliases}, 詞彙比較: ${comparisonAliases})`,
   `synth failures (headwords + aliases): ${synthFailures}`,

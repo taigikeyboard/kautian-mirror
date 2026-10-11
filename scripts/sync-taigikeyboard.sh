@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
-# Fetches kautian.csv + kautian.ods from taigikeyboard's main branch (the cleaned copies this site
-# builds from) into extension/. On a change: bumps the extension patch version, packages + tests,
+# Fetches kautian.csv + kautian.ods (the cleaned copies this site builds from) and word_unigrams.tsv
+# (corpus word counts, for search ranking) from taigikeyboard's main branch into extension/. On a change: bumps the extension patch version, packages + tests,
 # opens a PR from a new branch, and attaches the zip to a draft GitHub Release. Run by `make sync-data`.
 set -euo pipefail
 
 UPSTREAM_REPO="taigikeyboard/taigikeyboard"
 UPSTREAM_DIR="dictionary/sources/official/kautian/data"
-FILES=("extension/kautian.csv" "extension/kautian.ods")
+# local file → upstream path (drives both the fetch and the change check)
+SOURCES=(
+  "extension/kautian.csv=$UPSTREAM_DIR/kautian.csv"
+  "extension/kautian.ods=$UPSTREAM_DIR/raw/kautian.ods"
+  "extension/word_unigrams.tsv=dictionary/shared/data/word_unigrams.tsv"
+)
+FILES=("${SOURCES[@]%%=*}")
 MANIFEST="extension/manifest.json"
 ZIP="extension/kautian-extension.zip"
 
@@ -21,11 +27,12 @@ if [ "$(git branch --show-current)" != "main" ]; then
 fi
 git pull --ff-only --quiet origin main
 
-# both files from one commit, so a sync never mixes two upstream states
+# all files from one commit, so a sync never mixes two upstream states
 upstream_sha="$(gh api "repos/$UPSTREAM_REPO/commits/main" --jq .sha)"
-raw="https://raw.githubusercontent.com/$UPSTREAM_REPO/$upstream_sha/$UPSTREAM_DIR"
-curl -fsSL --max-time 300 -o extension/kautian.csv "$raw/kautian.csv"
-curl -fsSL --max-time 300 -o extension/kautian.ods "$raw/raw/kautian.ods"
+raw="https://raw.githubusercontent.com/$UPSTREAM_REPO/$upstream_sha"
+for source in "${SOURCES[@]}"; do
+  curl -fsSL --max-time 300 -o "${source%%=*}" "$raw/${source#*=}"
+done
 echo "upstream: $UPSTREAM_REPO@${upstream_sha:0:7}"
 
 if git diff --quiet -- "${FILES[@]}"; then

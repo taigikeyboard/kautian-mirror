@@ -30,10 +30,16 @@ test("entry ids: kan-tann / kan-ta / 干焦 all resolve to entry 448", () => {
 });
 
 test("entry 16685 (寬/緩 khuann): every input system reaches it", () => {
-  // unmarked TL is a valid tone-1 spelling → toned-exact puts 16685 on top
-  for (const q of ["khuaⁿ", "khuann", "ㄎㄨㆩ", "khoann1", "khoaⁿ1", "KHUANN"]) {
+  // a typed tone 1 → toned-exact puts 16685 on top
+  for (const q of ["khoann1", "khoaⁿ1"]) {
     const r = engine.query(q);
     assert.equal(r.results[0]?.id, 16685, `top result for ${JSON.stringify(q)} should be entry 16685`);
+  }
+  // unmarked input is an exact hit too, behind the more used 看 khuànn (corpus 15048 vs 寬 17)
+  for (const q of ["khuaⁿ", "khuann", "ㄎㄨㆩ", "KHUANN"]) {
+    const r = engine.query(q);
+    assert.equal(r.results[0]?.hanzi, "看", `top result for ${JSON.stringify(q)} should be 看`);
+    assert.equal(r.results.find((x) => x.id === 16685)?.tier, TIER.EXACT, q);
   }
   // Hanzi lookups share the surface form with other entries (寬 khuan, 緩 uān)
   // but 16685 must be present
@@ -111,11 +117,10 @@ test("explicit tone does not fall back to toneless search", () => {
 
 test("case-insensitive + toneless: SI → high-frequency si* words", () => {
   const r = engine.query("SI");
-  assert.ok(r.results.length > 0);
-  // "si" is a valid tone-1 spelling, so the toned-exact hit (詩 si) leads;
-  // toneless matches like 是 sī follow
-  assert.ok(r.results[0].tier <= TIER.EXACT);
-  assert.ok(hanzis(r).includes("是"));
+  // every tone of "si" is an exact hit; 是 sī (corpus 59309) outranks 詩 si (698)
+  assert.equal(r.results[0].hanzi, "是");
+  assert.equal(r.results[0].tier, TIER.EXACT);
+  assert.ok(hanzis(r).includes("詩"));
 });
 
 test("POJ input: chhiau→tshiau, soa-lak-khu→沙鹿區", () => {
@@ -145,7 +150,40 @@ test("POJ, TL, and TPS equivalents preserve nasalization and tone", () => {
 test("prefix: sutia* completion", () => {
   const r = engine.query("sutia");
   assert.ok(r.results.length > 0);
-  assert.ok(r.results.every((x) => x.tier <= TIER.PREFIX || x.tier >= TIER.SUBSTR));
+  assert.ok(r.results.every((x) => x.tier <= TIER.SPLIT_PREFIX || x.tier >= TIER.SUBSTR));
+});
+
+test("prefix: stopping on a syllable boundary beats stopping inside a later syllable", () => {
+  // trace: guat = gua̍t | -tâi (boundary) vs gua | t·ē (inside the 2nd syllable of guā-tē);
+  // POJ goat folds the same way
+  for (const q of ["guat", "goat"]) {
+    const r = engine.query(q);
+    assert.deepEqual(hanzis(r).slice(0, 2), ["月", "月台"], q);
+    const lastBoundary = r.results.findLastIndex((x) => x.tier === TIER.PREFIX);
+    const firstSplit = r.results.findIndex((x) => x.tier === TIER.SPLIT_PREFIX);
+    assert.ok(r.results[firstSplit].tl.startsWith("guā-t"), q);
+    assert.ok(lastBoundary < firstSplit, q);
+  }
+  // stopping inside the first syllable is ordinary typing: gua → 阮 guán stays a PREFIX hit
+  const gua = engine.query("gua");
+  assert.equal(gua.results.find((x) => x.hanzi === "阮")?.tier, TIER.PREFIX);
+});
+
+test("ranking: toneless input puts the most used word first", () => {
+  // trace (corpus counts): 食 tsia̍h 7952 > 才 tsiah 6127; 人 lâng 55655 > 籠 lang 9;
+  // 一 tsi̍t 31362 > 這 tsit 20493; 予 hōo 26671 > 呼 hoo 141; 看 khuànn 15048 > 寬 khuann 17
+  for (const [q, top] of [["tsiah", "食"], ["lang", "人"], ["tsit", "一"], ["hoo", "予"], ["khuann", "看"], ["gua", "我"]]) {
+    assert.equal(engine.query(q).results[0].hanzi, top, q);
+  }
+  // within one tier too: 外面 guā-bīn 573 > 外移 guā-î 3; 出來 tshut-lâi 1568 > 出世 tshut-sì 970
+  for (const [q, more, less] of [["gua", "外面", "外移"], ["tshut", "出來", "出世"]]) {
+    const list = hanzis(engine.query(q, { limit: 200 }));
+    assert.ok(list.indexOf(more) < list.indexOf(less), `${q}: ${more} before ${less}`);
+  }
+  // short prefixes (tsh, kh) rank their whole key range, not just its alphabetical head
+  for (const [q, word] of [["tsh", "出"], ["kh", "去"]]) {
+    assert.ok(hanzis(engine.query(q)).slice(0, 3).includes(word), `${q}: ${word} in the top 3`);
+  }
 });
 
 test("abbreviation: tk (many collisions)", () => {
@@ -246,7 +284,7 @@ test("recency: boosts within a tier, never across tiers", () => {
   assert.equal(boosted.results[0].recent, true);
   assert.equal(boosted.results[1].recent, false);
 
-  // a recent prefix-tier hit must not overtake the toned-exact hit (詩 si)
+  // a recent prefix-tier hit must not overtake the exact hits (是 sī, 詩 si)
   const si = engine.query("si", { limit: 200 });
   const prefixHit = si.results.find((x) => x.tier === TIER.PREFIX);
   assert.ok(prefixHit);
@@ -254,7 +292,7 @@ test("recency: boosts within a tier, never across tiers", () => {
     limit: 200,
     recencyRank: (id) => (id === prefixHit.id ? 0 : undefined),
   });
-  assert.equal(siBoosted.results[0].tier, TIER.TONED);
+  assert.equal(siBoosted.results[0].tier, TIER.EXACT);
   const boostedPos = siBoosted.results.findIndex((x) => x.id === prefixHit.id);
   const firstPrefixPos = siBoosted.results.findIndex((x) => x.tier === TIER.PREFIX);
   assert.equal(boostedPos, firstPrefixPos); // first within its own tier
@@ -294,7 +332,7 @@ test("empty input", () => {
   assert.equal(engine.query("   ").results.length, 0);
 });
 
-test("ranking: toned-exact and main entries first (no frequency)", () => {
+test("ranking: a typed tone puts its toned-exact hit first", () => {
   const r = engine.query("e5");
   assert.ok(r.results.length > 0);
   assert.equal(r.results[0].tier, TIER.TONED);

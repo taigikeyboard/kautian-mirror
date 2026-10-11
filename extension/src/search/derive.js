@@ -12,6 +12,8 @@ const TPS_EXPLICIT_TONE_RE = /[ˊˇˋ˙ˆ˘˪˫̀-ͯ·]/;
 
 const COMBINING_RE = /[̀-ͯ]/g;
 const JOIN_RE = /--|[-\s]+|[0-9]/g;
+// syllable separators of a tl/poj form: hyphen, neutral-tone --, whitespace
+export const SYLLABLE_SEP_RE = /--|[-\s]+/g;
 
 // tl (with tones and hyphens) → toneless, hyphenless, lowercase (≡ CSV tl_notone)
 export function deriveTlNotone(tl) {

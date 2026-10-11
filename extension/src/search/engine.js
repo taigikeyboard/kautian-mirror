@@ -3,25 +3,25 @@
 // Pure-function module — no DOM, no chrome APIs; testable directly in Node.
 import { classify } from "./detect.js";
 import { normalizeLatin, foldHanzi, normalizeTps } from "./normalize.js";
-import { deriveTlNotone, derivePojNotone, deriveTpsNotone, hasExplicitTpsTone } from "./derive.js";
+import { deriveTlNotone, derivePojNotone, deriveTpsNotone, hasExplicitTpsTone, SYLLABLE_SEP_RE } from "./derive.js";
 import { queryFold, dataFold } from "./zhuyin-fold.js";
 import { fuzzyScan } from "./fuzzy.js";
 import { hasRegexSyntax, parsePattern, regexScan } from "./regex-mode.js";
 
 // Ranking tiers (§6.3)
 export const TIER = {
-  TONED: 1, // toned exact
-  EXACT: 2, // toneless exact / Hanzi exact / TPS exact
-  PREFIX: 3, // toneless prefix
-  ABBREV: 4, // abbreviation exact
-  ZHUYIN: 5, // Zhuyin approximate sound
-  SUBSTR: 6, // substring
-  FUZZY: 7, // fuzzy
-  REGEX: 8, // raw regular-expression match
+  TONED: 1, // exact with the typed tone
+  EXACT: 2, // exact, any tone (toneless input) / Hanzi exact / TPS exact
+  PREFIX: 3, // toneless prefix ending on a syllable boundary or inside the first syllable
+  SPLIT_PREFIX: 4, // toneless prefix ending partway into a later syllable (guat → guā-tē)
+  ABBREV: 5, // abbreviation exact
+  ZHUYIN: 6, // Zhuyin approximate sound
+  SUBSTR: 7, // substring
+  FUZZY: 8, // fuzzy
+  REGEX: 9, // raw regular-expression match
 };
 
 const CANDIDATE_CAP = 50;
-const PREFIX_CAP = 200;
 const SUBSTR_CAP = 100;
 
 // Per-row flags bits, written by build-data.mjs
@@ -35,10 +35,10 @@ export const FLAG = {
 const STR_COLS = ["tl", "hanzi", "poj", "tps", "tlNum", "tpsNotoneVar", "abTl", "abPoj", "abTps", "gloss"];
 
 function unpack(packed) {
-  if (packed?.meta?.format !== 5) {
+  if (packed?.meta?.format !== 6) {
     throw new Error(`unsupported data format: ${packed?.meta?.format}`);
   }
-  const d = { id: packed.id, flags: packed.flags };
+  const d = { id: packed.id, flags: packed.flags, pop: packed.pop };
   for (const k of STR_COLS) d[k] = packed[k].split("\n");
   return d;
 }
@@ -74,19 +74,27 @@ function searchExact(ix, key, visit) {
   while (pos < ix.keys.length && ix.keys[pos] === key) visit(ix.idx[pos++]);
 }
 
-// visit(entryIdx, isExact): prefix range (exact hits sort first in the range,
-// so they can never be cut off by the cap)
+// visit(entryIdx, key): the whole prefix range, uncapped — popularity ranking needs every candidate
 function searchPrefix(ix, prefix, visit) {
   if (!prefix) return;
-  let pos = lowerBound(ix.keys, prefix);
-  let seen = 0;
-  while (pos < ix.keys.length && seen < PREFIX_CAP) {
+  for (let pos = lowerBound(ix.keys, prefix); pos < ix.keys.length; pos++) {
     const key = ix.keys[pos];
     if (!key.startsWith(prefix)) break;
-    visit(ix.idx[pos], key === prefix);
-    pos++;
-    seen++;
+    visit(ix.idx[pos], key);
   }
+}
+
+// cumulative toneless lengths at each syllable end: guā-tē → [3, 5]
+function syllableEnds(roman, deriveNotone) {
+  let end = 0;
+  return roman.split(SYLLABLE_SEP_RE).map((syllable) => (end += deriveNotone(syllable).length));
+}
+
+// Whether a toneless prefix of `length` chars stops partway into a syllable after the first:
+// "guat" stops inside tē of guā-tē, while gua̍t-tâi (boundary) and guán (first syllable) do not.
+function endsInLaterSyllable(ends, length) {
+  const k = ends.findIndex((end) => length <= end);
+  return k > 0 && length < ends[k];
 }
 
 export function createEngine(packed) {
@@ -111,7 +119,7 @@ export function createEngine(packed) {
     }
     return ix;
   }
-  const stripJoin = (s) => s.toLowerCase().replace(/--|[-\s]+/g, "").normalize("NFC");
+  const stripJoin = (s) => s.toLowerCase().replace(SYLLABLE_SEP_RE, "").normalize("NFC");
 
   const ixLatin = () =>
     index("latin", () => {
@@ -194,19 +202,16 @@ export function createEngine(packed) {
     };
   }
 
-  // No frequency ranking (by request): tier → recently opened (never crosses
-  // a tier boundary) → main entry → non-variant → shorter word; remaining
-  // ties keep stable candidate order.
+  // tier → recently opened (never crosses a tier boundary) → more used entry
+  // (corpus popularity rank) → main entry → non-variant → shorter word;
+  // remaining ties keep stable candidate order.
   function finalize(tiers, limit, recencyRank) {
-    const entries = [...tiers.entries()]; // [idx, tier]
+    // [idx, tier, recency]; recency resolved once per candidate (Infinity = not recent)
+    const entries = [...tiers].map(([i, tier]) => [i, tier, recencyRank?.(d.id[i]) ?? Infinity]);
     entries.sort((a, b) => {
       if (a[1] !== b[1]) return a[1] - b[1];
-      if (recencyRank) {
-        const ra = recencyRank(d.id[a[0]]);
-        const rb = recencyRank(d.id[b[0]]);
-        if ((ra !== undefined) !== (rb !== undefined)) return ra !== undefined ? -1 : 1;
-        if (ra !== undefined && ra !== rb) return ra - rb;
-      }
+      if (a[2] !== b[2]) return a[2] < b[2] ? -1 : 1;
+      if (d.pop[a[0]] !== d.pop[b[0]]) return d.pop[a[0]] - d.pop[b[0]];
       const fa = formRank(a[0]);
       const fb = formRank(b[0]);
       if (fa !== fb) return fa - fb;
@@ -215,10 +220,10 @@ export function createEngine(packed) {
     // one row per entry id — the best-ranked form represents the entry
     const seen = new Set();
     const results = [];
-    for (const [i, tier] of entries) {
+    for (const [i, tier, recency] of entries) {
       if (seen.has(d.id[i])) continue;
       seen.add(d.id[i]);
-      results.push(toResult(i, tier, recencyRank?.(d.id[i]) !== undefined));
+      results.push(toResult(i, tier, recency !== Infinity));
       if (results.length >= limit) break;
     }
     return results;
@@ -265,20 +270,32 @@ export function createEngine(packed) {
     if (cur === undefined || tier < cur) tiers.set(i, tier);
   }
 
+  // syllable ends per row, derived on first prefix visit and kept for later keystrokes
+  const tlEnds = new Array(n);
+  const pojEnds = new Array(n);
+
+  // tier of a latin prefix-index hit; key = the matched index key (row i's TL or POJ notone form)
+  function latinPrefixTier(i, key, prefix) {
+    if (key === prefix) return TIER.EXACT;
+    const ends = key === tlNotone[i]
+      ? (tlEnds[i] ??= syllableEnds(d.tl[i], deriveTlNotone))
+      : (pojEnds[i] ??= syllableEnds(d.poj[i], derivePojNotone));
+    return endsInLaterSyllable(ends, prefix.length) ? TIER.SPLIT_PREFIX : TIER.PREFIX;
+  }
+
   function queryLatin(input, tiers) {
     const { pojKey, tlKey, toned, tonedTl, hasTone } = normalizeLatin(input);
-    // Always try toned-exact: an unmarked romanization is itself a valid
-    // tone-1 spelling (khuann ≡ tone 1), so an exact toned hit outranks
-    // toneless matches. Both the raw key and its POJ→TL-folded twin are tried.
-    searchExact(ixToned(), toned, (i) => add(tiers, i, TIER.TONED));
-    if (tonedTl !== toned) searchExact(ixToned(), tonedTl, (i) => add(tiers, i, TIER.TONED));
+    // Toned-exact: with a typed tone it outranks everything. Unmarked input is
+    // also a tone-1 spelling (khuann), but it is just as often toneless typing
+    // (khuann → 看 khuànn), so those hits share the EXACT tier and popularity decides.
+    // Both the raw key and its POJ→TL-folded twin are tried.
+    const tonedTier = hasTone ? TIER.TONED : TIER.EXACT;
+    searchExact(ixToned(), toned, (i) => add(tiers, i, tonedTier));
+    if (tonedTl !== toned) searchExact(ixToned(), tonedTl, (i) => add(tiers, i, tonedTier));
     if (hasTone) return;
-    // the prefix index's exact flag serves tiers 2 and 3 in one pass
-    searchPrefix(ixLatin(), tlKey, (i, exact) =>
-      add(tiers, i, exact ? TIER.EXACT : TIER.PREFIX));
-    if (pojKey !== tlKey) {
-      searchPrefix(ixLatin(), pojKey, (i, exact) =>
-        add(tiers, i, exact ? TIER.EXACT : TIER.PREFIX));
+    // the prefix index's exact flag serves the exact and prefix tiers in one pass
+    for (const prefix of new Set([tlKey, pojKey])) {
+      searchPrefix(ixLatin(), prefix, (i, k) => add(tiers, i, latinPrefixTier(i, k, prefix)));
     }
     searchExact(ixAbbrev(), tlKey, (i) => add(tiers, i, TIER.ABBREV));
     if (pojKey !== tlKey) searchExact(ixAbbrev(), pojKey, (i) => add(tiers, i, TIER.ABBREV));
@@ -299,8 +316,8 @@ export function createEngine(packed) {
 
   function queryHanzi(input, tiers) {
     const key = foldHanzi(input.trim());
-    searchPrefix(ixHanzi(), key, (i, exact) =>
-      add(tiers, i, exact ? TIER.EXACT : TIER.PREFIX));
+    searchPrefix(ixHanzi(), key, (i, k) =>
+      add(tiers, i, k === key ? TIER.EXACT : TIER.PREFIX));
     let hits = 0;
     for (let i = 0; i < n && hits < SUBSTR_CAP; i++) {
       if (!tiers.has(i) && hanziFold[i].includes(key)) {
@@ -311,12 +328,15 @@ export function createEngine(packed) {
   }
 
   function queryBopomofo(input, tiers) {
-    // Toned-exact first: TPS with tone marks (or none = tone 1) matches tps_num
-    searchExact(ixToned(), input.normalize("NFC").trim(), (i) => add(tiers, i, TIER.TONED));
-    if (hasExplicitTpsTone(input)) return;
+    // Toned-exact: TPS with tone marks (or none = tone 1) matches tps_num;
+    // unmarked input shares the EXACT tier, as in queryLatin
+    const hasTone = hasExplicitTpsTone(input);
+    searchExact(ixToned(), input.normalize("NFC").trim(), (i) =>
+      add(tiers, i, hasTone ? TIER.TONED : TIER.EXACT));
+    if (hasTone) return;
     const tpsKey = normalizeTps(input);
-    searchPrefix(ixTps(), tpsKey, (i, exact) =>
-      add(tiers, i, exact ? TIER.EXACT : TIER.PREFIX));
+    searchPrefix(ixTps(), tpsKey, (i, k) =>
+      add(tiers, i, k === tpsKey ? TIER.EXACT : TIER.PREFIX));
     for (const zhuKey of queryFold(input)) {
       searchPrefix(ixZhu(), zhuKey, (i) => add(tiers, i, TIER.ZHUYIN));
     }
