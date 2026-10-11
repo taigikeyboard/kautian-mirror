@@ -10,6 +10,7 @@ import { initThemeToggle } from "./theme.js";
 
 const RESULTS_LIMIT = 200;
 const EXAMPLES_LIMIT = 5;
+const SUGGEST_EXAMPLES_LIMIT = 3;
 const SITE_TITLE = "教典備援網站";
 const HOME_TITLE = "教典備援網站";
 
@@ -62,10 +63,11 @@ function loadEngine() {
   return enginePromise;
 }
 
+let exampleSearch = null;
 let exampleSearchPromise = null;
 function loadExampleSearch() {
   exampleSearchPromise ??= fetchJson(EXAMPLES_PATH)
-    .then(createExampleSearch)
+    .then((rows) => (exampleSearch = createExampleSearch(rows)))
     .catch((err) => {
       exampleSearchPromise = null;
       throw err;
@@ -199,10 +201,25 @@ async function updateSuggestions() {
     }
     if (seq !== suggestSeq) return;
   }
-  suggest.render(engine.query(query, { limit: CONFIG.LIMIT, recencyRank: recency.rankOf }));
+  const headwords = engine.query(query, { limit: CONFIG.LIMIT, recencyRank: recency.rankOf });
+  if (exampleSearch) return suggest.render(headwords, exampleSearch.search(query, SUGGEST_EXAMPLES_LIMIT));
+  // 例句 still loading: headwords show now, the list re-renders once 例句 arrive
+  suggest.render(headwords);
+  try {
+    await loadExampleSearch();
+  } catch {
+    return;
+  }
+  const examples = exampleSearch.search(query, SUGGEST_EXAMPLES_LIMIT);
+  if (seq !== suggestSeq || !examples.length) return;
+  suggest.render(headwords, examples);
 }
 
-input.addEventListener("focus", () => loadEngine().catch(() => {}));
+// the 例句 file loads only once someone starts searching, never on the bare home page
+input.addEventListener("focus", () => {
+  loadEngine().catch(() => {});
+  loadExampleSearch().catch(() => {});
+});
 input.addEventListener("input", () => {
   cancelSuggestions();
   suggest.clearActive();

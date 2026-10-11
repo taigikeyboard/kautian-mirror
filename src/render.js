@@ -58,10 +58,13 @@ const regexErrorText = (error) =>
   error === "too-long" ? "正規表達式傷長（上濟 64 字）" : "正規表達式無正確";
 
 // example: { entryId, hanzi, tl, mandarin } from example-search.js; opens its entry
-function exampleRow(example) {
-  const row = el("a", "row example-row");
+// isCompact: dropdown row, the sentence alone on one ellipsized line
+export function exampleRow(example, { isCompact = false } = {}) {
+  const row = el("a", isCompact ? "row example-row compact" : "row example-row");
   row.href = entryHref(example.entryId);
-  row.append(el("span", "ex-hanzi", example.hanzi), el("span", "ex-roman", example.tl));
+  row.append(el("span", "ex-hanzi", example.hanzi));
+  if (isCompact) return row;
+  row.append(el("span", "ex-roman", example.tl));
   if (example.mandarin) row.append(el("span", "ex-zh", example.mandarin));
   return row;
 }
@@ -82,7 +85,9 @@ export function resultsView(query, { results, error }, examples = []) {
   if (!results.length && !examples.length) return statusView(`「${query}」揣無`);
   const frag = document.createDocumentFragment();
   if (results.length) frag.append(rowList(results.map(resultRow)));
-  if (examples.length) frag.append(el("h2", "results-heading", "例句"), rowList(examples.map(exampleRow)));
+  if (examples.length) {
+    frag.append(el("h2", "results-heading", "例句"), rowList(examples.map((example) => exampleRow(example))));
+  }
   return frag;
 }
 

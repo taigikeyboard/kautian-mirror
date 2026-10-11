@@ -2,7 +2,7 @@
 // content/ui.js: <a href> rows, textContent only, listeners bound once,
 // IME-safe keyboard handling. Positioned by CSS inside the search form.
 import { dropdownMaxHeight } from "../extension/src/content/ui.js";
-import { resultRow } from "./render.js";
+import { el, exampleRow, resultRow } from "./render.js";
 
 const BOX_GAP = 8; // matches .suggest top: calc(100% + 8px)
 
@@ -53,18 +53,26 @@ export function createSuggest({ input, box, onOpen, onSubmit, onDismiss }) {
     input.setAttribute("aria-expanded", "true");
   }
 
+  function addOption(row) {
+    row.id = `suggest-${rows.length}`;
+    row.setAttribute("role", "option");
+    row.setAttribute("aria-selected", "false");
+    box.append(row);
+    rows.push(row);
+  }
+
   // out: engine query() result { results, error }; errors show on the results page only
-  function render({ results, error }) {
+  // examples: 例句 hits listed after the headwords, under a non-selectable 例句 label
+  function render({ results, error }, examples = []) {
     clear();
-    if (error || !results.length) return hide();
-    results.forEach((res, idx) => {
-      const row = resultRow(res);
-      row.id = `suggest-${idx}`;
-      row.setAttribute("role", "option");
-      row.setAttribute("aria-selected", "false");
-      box.append(row);
-      rows.push(row);
-    });
+    if (error || (!results.length && !examples.length)) return hide();
+    results.forEach((res) => addOption(resultRow(res)));
+    if (examples.length) {
+      const heading = el("div", "suggest-heading", "例句");
+      heading.setAttribute("role", "presentation");
+      box.append(heading);
+      examples.forEach((example) => addOption(exampleRow(example, { isCompact: true })));
+    }
     show();
   }
 

@@ -229,6 +229,11 @@ h1 {
 .results-heading { margin: 1.75rem 0 1rem; color: var(--secondary); font-size: 15px; font-weight: normal; }
 .results-heading:first-child { margin-top: 0; }
 .example-row { flex-direction: column; gap: 0.125rem; }
+/* dropdown 例句: one line, cut with … */
+.example-row.compact { flex-direction: row; flex-wrap: nowrap; }
+.example-row.compact .ex-hanzi { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.suggest-heading { padding: 0.625rem 0.75rem 0.25rem; color: var(--secondary); font-size: 14px; }
+.suggest-heading:not(:first-child) { margin-top: 0.25rem; border-top: 1px solid var(--hairline); }
 
 /* --- entry --- */
 .entry-head { position: relative; }
