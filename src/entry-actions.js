@@ -1,4 +1,5 @@
-// Entry header actions: copy the headword, share the entry link (Web Share, else clipboard), word card.
+// Entry header actions: bookmark, copy the headword, share the entry link (Web Share, else clipboard),
+// word card.
 import { shareWordCard } from "./word-card.js";
 
 const COPY_SVG = `<svg viewBox="0 0 20 20" aria-hidden="true">
@@ -13,6 +14,10 @@ const CARD_SVG = `<svg viewBox="0 0 20 20" aria-hidden="true">
   <rect x="2.75" y="3.75" width="14.5" height="12.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
   <circle cx="7" cy="8" r="1.25" fill="currentColor"/>
   <path d="M3.5 14.5l4-3.75 2.75 2.5 2.75-3.25 4 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+</svg>`;
+// one star path; filled while the entry is bookmarked
+const starSvg = (isFilled) => `<svg viewBox="0 0 20 20" aria-hidden="true">
+  <path d="M10 2.75l2.2 4.6 5.05.65-3.7 3.5.95 5-4.5-2.45-4.5 2.45.95-5-3.7-3.5 5.05-.65z" fill="${isFilled ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
 </svg>`;
 const DONE_SVG = `<svg viewBox="0 0 20 20" aria-hidden="true">
   <path d="M4.5 10.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
@@ -48,13 +53,28 @@ function copyText(text, button, svg, label, doneLabel) {
   );
 }
 
-// entry: { id, hanzi, tl }
-export function entryActions(entry) {
+// shows and flips the entry's 收藏 state
+function bookmarkButton(entry, bookmarks) {
+  const button = iconButton("", "", () => showState(bookmarks.toggle(entry)));
+  function showState(isBookmarked) {
+    const label = isBookmarked ? "取消收藏" : "收藏";
+    button.innerHTML = starSvg(isBookmarked);
+    button.title = label;
+    button.setAttribute("aria-label", label);
+    button.setAttribute("aria-pressed", String(isBookmarked));
+  }
+  showState(bookmarks.has(entry.id));
+  return button;
+}
+
+// entry: { id, hanzi, tl }; bookmarks: createBookmarks() store
+export function entryActions(entry, bookmarks) {
   const box = document.createElement("div");
   box.className = "entry-actions";
   // same "漢字 台羅" shape as the entry's tab title
   const headword = `${entry.hanzi} ${entry.tl.join("/")}`;
   box.append(
+    bookmarkButton(entry, bookmarks),
     iconButton(COPY_SVG, "複製詞目", (button) => copyText(headword, button, COPY_SVG, "複製詞目", "已複製")),
     iconButton(SHARE_SVG, "分享連結", (button) => {
       const url = `${location.origin}${location.pathname}?id=${entry.id}`;

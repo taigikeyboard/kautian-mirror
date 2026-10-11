@@ -20,6 +20,10 @@ export function initSidebar(button, sidebar, storage) {
     syncExpanded();
   });
   sidebar.addEventListener("toggle", syncExpanded);
+  // a 收藏 link opens its entry in place; the drawer steps aside for it
+  sidebar.addEventListener("click", (event) => {
+    if (event.target.closest("a[href]") && sidebar.matches(":popover-open")) sidebar.hidePopover();
+  });
   // a drawer left open while the window widens would sit in the top layer over the docked sidebar
   wideScreen.addEventListener("change", () => {
     if (sidebar.matches(":popover-open")) sidebar.hidePopover();

@@ -3,7 +3,8 @@ import { createEngine } from "../extension/src/search/engine.js";
 import { CONFIG } from "../extension/src/content/config.js";
 import { createRecency } from "../extension/src/content/recency.js";
 import { createSuggest } from "./suggest.js";
-import { entryView, loadingView, resultsView, searchHref, statusView } from "./render.js";
+import { bookmarkRows, entryView, loadingView, resultsView, searchHref, statusView } from "./render.js";
+import { createBookmarks } from "./bookmarks.js";
 import { createExampleSearch } from "./example-search.js";
 import { EXAMPLES_PATH, INDEX_PATH, bucketOf, shardPath } from "./data-paths.js";
 import { initSettings } from "./settings.js";
@@ -38,6 +39,16 @@ const localArea = {
   },
 };
 const recency = createRecency(localArea);
+
+// sidebar 收藏 list: re-rendered on every toggle and navigation (marks the open entry)
+const bookmarkNav = document.getElementById("bookmarks");
+let currentEntryId = null;
+function renderBookmarks() {
+  const items = bookmarks.list();
+  bookmarkNav.hidden = !items.length;
+  bookmarkNav.replaceChildren(...bookmarkRows(items, currentEntryId));
+}
+const bookmarks = createBookmarks(localArea, renderBookmarks);
 
 const input = document.getElementById("q");
 const form = input.form;
@@ -147,7 +158,7 @@ async function showEntry(rawId) {
       return;
     }
     recency.record(id);
-    show(entryView(entry), { title: `${entry.hanzi} ${entry.tl.join("/")}｜${SITE_TITLE}`, isIndexable: true });
+    show(entryView(entry, bookmarks), { title: `${entry.hanzi} ${entry.tl.join("/")}｜${SITE_TITLE}`, isIndexable: true });
     window.scrollTo(0, 0);
   } catch (err) {
     if (seq !== navSeq) return;
@@ -159,6 +170,8 @@ async function showEntry(rawId) {
 function route() {
   suggest.hide();
   const params = new URLSearchParams(location.search);
+  currentEntryId = params.has("id") ? Number(params.get("id")) : null;
+  renderBookmarks();
   if (params.has("id")) return showEntry(params.get("id"));
   const query = params.get("q")?.trim();
   if (query) return showResults(query);

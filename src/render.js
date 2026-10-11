@@ -70,6 +70,17 @@ export function exampleRow(example, { isCompact = false } = {}) {
   return row;
 }
 
+// sidebar 收藏 rows (bookmarks.js items, newest first); the open entry is marked current
+export function bookmarkRows(items, currentId) {
+  return items.map(({ id, hanzi, tl }) => {
+    const row = el("a", "bookmark");
+    row.href = entryHref(id);
+    if (id === currentId) row.setAttribute("aria-current", "page");
+    row.append(el("span", "bookmark-hanzi", hanzi), el("span", "bookmark-tl", tl));
+    return row;
+  });
+}
+
 function rowList(rows) {
   const list = el("ul", "results");
   for (const row of rows) {
@@ -259,12 +270,13 @@ function senseItem(sense, number) {
   return item;
 }
 
-export function entryView(entry) {
+// bookmarks: createBookmarks() store, for the header's 收藏 button
+export function entryView(entry, bookmarks) {
   const article = el("article", "entry");
   const head = el("header", "entry-head");
   const hanzi = el("h1", "entry-hanzi", entry.hanzi);
   if (entry.isSubstitute) hanzi.append(el("span", "mark", "【替】"));
-  head.append(entryActions(entry), hanzi, readingsLine(entry), el("p", "entry-meta", entry.type));
+  head.append(entryActions(entry, bookmarks), hanzi, readingsLine(entry), el("p", "entry-meta", entry.type));
   article.append(head);
 
   if (entry.senses?.length) {
