@@ -174,9 +174,10 @@ export function createEngine(packed) {
   // alias and 又唸作-type reading rows never display: a hit on one shows the entry headword
   const HIDDEN_ROW = FLAG.ALIAS | FLAG.READING;
   // entry id → the row that displays it (best formRank, first wins); entry id → its
-  // 又唸作 / 俗唸作 / 合音唸作 readings (TL, data order); both built on first use
+  // 又唸作 / 俗唸作 / 合音唸作 readings (data order, one per TL); both built on first use
   let heads = null;
   let readings = null;
+  const romans = (i) => ({ tl: d.tl[i], poj: d.poj[i], tps: d.tps[i] });
   function indexEntries() {
     heads = new Map();
     readings = new Map();
@@ -184,7 +185,7 @@ export function createEngine(packed) {
       const id = d.id[j];
       if (d.flags[j] & FLAG.READING) {
         if (!readings.has(id)) readings.set(id, []);
-        if (!readings.get(id).includes(d.tl[j])) readings.get(id).push(d.tl[j]);
+        if (!readings.get(id).some((r) => r.tl === d.tl[j])) readings.get(id).push(romans(j));
       }
       if (d.flags[j] & HIDDEN_ROW) continue;
       const best = heads.get(id);
@@ -196,37 +197,43 @@ export function createEngine(packed) {
     if (!heads) indexEntries();
     return heads.get(d.id[i]) ?? i;
   }
-  // the entry's variant readings other than the displayed one (shown by the site's 選單顯示 switch)
-  function readingsOf(h) {
+  // the entry's 又唸作-type readings other than the shown one (r = shown row), the headword
+  // reading first when a typed 唸作 reading replaced it (shown by the site's 選單顯示 switch)
+  function readingsOf(h, r) {
     if (!readings) indexEntries();
-    return (readings.get(d.id[h]) ?? []).filter((tl) => tl !== d.tl[h]);
+    const all = readings.get(d.id[h]) ?? [];
+    const withHead = d.flags[r] & FLAG.READING ? [romans(h), ...all] : all;
+    return withHead.filter((x) => x.tl !== d.tl[r]);
   }
 
-  // how an alias row matched, for the UI's hint: the 語音差異 reading or the 詞彙比較 word; null otherwise
-  function matchedVia(i) {
+  // match hint for the UI: the headword reading a typed 語音差異 reading replaced, or the 詞彙比較
+  // word that matched (its hanzi differ from the entry's, so the row keeps the headword); null otherwise
+  function matchedVia(i, h) {
     const f = d.flags[i];
-    if (f & FLAG.DIALECT) return { kind: "dialect", text: d.tl[i] };
+    if (f & FLAG.DIALECT) return { kind: "dialect", text: d.tl[h], poj: d.poj[h], tps: d.tps[h] };
     if (f & FLAG.COMPARISON) return { kind: "comparison", text: d.hanzi[i] };
     return null;
   }
 
-  // i = the matched row; the displayed fields come from its head row
+  // i = the matched row; hanzi etc. come from its head row. A typed 又唸作-type or 語音差異 reading
+  // (same hanzi, other sound) is shown in place of the headword reading, like 去 khìr ㄎㆨ˪
   function toResult(i, tier, recent) {
     const h = headRow(i);
+    const r = d.flags[i] & (FLAG.READING | FLAG.DIALECT) ? i : h;
     return {
       i,
       tier,
       id: d.id[h],
-      tl: d.tl[h],
+      tl: d.tl[r],
       hanzi: d.hanzi[h],
-      poj: d.poj[h],
-      tps: d.tps[h],
+      poj: d.poj[r],
+      tps: d.tps[r],
       gloss: d.gloss[h], // first 華語釋義, cut at build time ("" when the entry has none)
       main: (d.flags[h] & FLAG.MAIN) !== 0,
       variant: (d.flags[h] & FLAG.VARIANT) !== 0,
       recent, // recently opened by the user (drives the clock hint in the UI)
-      via: matchedVia(i),
-      readings: readingsOf(h),
+      via: matchedVia(i, h),
+      readings: readingsOf(h, r),
     };
   }
 

@@ -12,6 +12,25 @@ export function el(tag, className, text) {
   return node;
 }
 
+// a reading's 台羅, then POJ (when it differs) and 方音符號; poj / tps classes: hidden by
+// the 白話字 / 方音符號 settings (styles.css)
+function romanSpans(tl, poj, tps) {
+  const spans = [el("span", "", tl)];
+  if (poj && poj !== tl) spans.push(el("span", "poj", poj));
+  if (tps) spans.push(el("span", "tps", tps));
+  return spans;
+}
+
+// match hint: readings as 台羅 / POJ / 方音符號 groups, joined by "、"
+function viaHint(kind, readings) {
+  const hint = el("span", `row-via ${kind}`);
+  readings.forEach(({ tl, poj, tps }, n) => {
+    if (n) hint.append("、");
+    hint.append(...romanSpans(tl, poj, tps));
+  });
+  return hint;
+}
+
 // res: engine result { id, hanzi, tl, poj, tps, gloss, via, readings }
 export function resultRow(res) {
   const row = el("a", "row");
@@ -20,10 +39,15 @@ export function resultRow(res) {
   // poj / tps classes: hidden by the 白話字 / 方音符號 settings (styles.css)
   if (res.poj && res.poj !== res.tl) row.append(el("span", "row-roman poj", res.poj));
   if (res.tps) row.append(el("span", "row-roman tps", res.tps));
-  // 又唸作 / 俗唸作 / 合音唸作 readings, then the alias form that matched ("bôr", "人仔書");
+  // the entry's other readings: 又唸作-type ones (plus the headword one a typed 唸作 reading
+  // replaced), the headword one a typed 語音差異 reading replaced, or the 詞彙比較 word ("人仔書");
   // kind classes: hidden in the dropdown by the 選單顯示 switches (styles.css)
-  if (res.readings.length) row.append(el("span", "row-via reading", res.readings.join("、")));
-  if (res.via) row.append(el("span", `row-via ${res.via.kind}`, res.via.text));
+  if (res.readings.length) row.append(viaHint("reading", res.readings));
+  if (res.via?.kind === "dialect") {
+    row.append(viaHint("dialect", [{ tl: res.via.text, poj: res.via.poj, tps: res.via.tps }]));
+  } else if (res.via) {
+    row.append(el("span", `row-via ${res.via.kind}`, res.via.text));
+  }
   // source 華語釋義, ellipsized by CSS: tells look-alike rows apart (five 東區 Tang-khu)
   if (res.gloss) row.append(el("span", "row-gloss", res.gloss));
   return row;

@@ -360,6 +360,7 @@ h1 {
 .row-roman { color: var(--secondary); font-size: 0.9375rem; overflow-wrap: anywhere; }
 /* match hint (bôr): why a row turned up for the typed form */
 .row-via { flex: 0 1 auto; min-width: 0; overflow: hidden; color: var(--secondary); font-size: 0.8125rem; white-space: nowrap; text-overflow: ellipsis; }
+.row-via .poj, .row-via .tps { margin-left: 0.375em; }
 /* one line, cut with …; wraps to its own line when under 8em is left */
 .row-gloss {
   flex: 1 1 8em;

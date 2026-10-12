@@ -49,12 +49,12 @@ test("entry 16685 (寬/緩 khuann): every input system reaches it", () => {
   }
 });
 
-test("語音差異 alias: khìr ranks 去 + 課 toned-exact, shown as their headwords", () => {
-  // trace: 語音差異 去(1395) 鹿港 khìr, 課(16827) 新竹 khìr → alias rows → headRow → main row
+test("語音差異 alias: khìr ranks 去 + 課 toned-exact, shown with the typed reading", () => {
+  // trace: 語音差異 去(1395) 鹿港 khìr, 課(16827) 新竹 khìr → alias rows → headRow hanzi + alias tl
   const r = engine.query("khìr");
   assert.deepEqual(
     r.results.slice(0, 2).map((x) => [x.id, x.hanzi, x.tl, x.tier]),
-    [[1395, "去", "khì", TIER.TONED], [16827, "課", "khuè", TIER.TONED]]
+    [[1395, "去", "khìr", TIER.TONED], [16827, "課", "khìr", TIER.TONED]]
   );
 });
 
@@ -74,21 +74,22 @@ test("詞彙比較 alias: never outranks the headword it duplicates", () => {
   assert.deepEqual(linked.map((x) => x.tier), [TIER.SUBSTR, TIER.SUBSTR]);
 });
 
-test("via: alias hits say which 語音差異 reading / 詞彙比較 word matched", () => {
+test("via: 語音差異 hits show the typed reading, hinting the headword one; 詞彙比較 hits hint the word", () => {
   const top = (q) => engine.query(q, { limit: 3 }).results[0];
   // trace: 語音差異 去(1395) 鹿港 khìr; 詞彙比較 人仔書 → 3073 尪仔冊; 去 typed as its own headword has no hint
-  assert.deepEqual(top("khìr").via, { kind: "dialect", text: "khìr" });
+  assert.deepEqual([top("khìr").hanzi, top("khìr").tl, top("khìr").tps], ["去", "khìr", "ㄎㆨ˪"]);
+  assert.deepEqual(top("khìr").via, { kind: "dialect", text: "khì", poj: "khì", tps: "ㄎㄧ˪" });
   assert.deepEqual(top("人仔書").via, { kind: "comparison", text: "人仔書" });
   assert.equal(top("khì").via, null);
 });
 
-test("readings: 又唸作-type readings show on the headword row, whichever reading was typed", () => {
+test("readings: a typed 又唸作-type reading replaces the headword one, which joins the hint", () => {
   const top = (q) => engine.query(q, { limit: 3 }).results[0];
   // trace: 俗唸作 sheet 避免 phiah-bián; 又唸作 sheet 欲(7469) bueh
-  for (const q of ["pī-bián", "phiah-bián"]) {
-    assert.deepEqual([top(q).hanzi, top(q).tl, top(q).readings, top(q).via], ["避免", "pī-bián", ["phiah-bián"], null], q);
+  for (const [q, other] of [["pī-bián", "phiah-bián"], ["phiah-bián", "pī-bián"]]) {
+    assert.deepEqual([top(q).hanzi, top(q).tl, top(q).readings.map((r) => r.tl), top(q).via], ["避免", q, [other], null], q);
   }
-  assert.deepEqual([top("bueh").id, top("bueh").tl, top("bueh").readings], [7469, "beh", ["bueh"]]);
+  assert.deepEqual([top("bueh").id, top("bueh").tl, top("bueh").readings], [7469, "bueh", [{ tl: "beh", poj: "beh", tps: "ㆠㆤㆷ" }]]);
   assert.deepEqual(top("khì").readings, []);
 });
 
@@ -265,7 +266,7 @@ test("raw regex is merged into ordinary search", () => {
   const matches = (tl) => /^tshiau/i.test(tl) || /^tshiau/i.test(notone(tl));
   assert.ok(
     a.results.every(
-      (x) => matches(x.tl) || /^tshiau/i.test(x.poj) || /^tshiau/i.test(x.hanzi) || x.readings.some(matches)
+      (x) => matches(x.tl) || /^tshiau/i.test(x.poj) || /^tshiau/i.test(x.hanzi) || x.readings.some((r) => matches(r.tl))
     )
   );
   const b = engine.query("[");
