@@ -206,26 +206,27 @@ export function createEngine(packed) {
     return withHead.filter((x) => x.tl !== d.tl[r]);
   }
 
-  // match hint for the UI: the headword reading a typed 語音差異 reading replaced, or the 詞彙比較
-  // word that matched (its hanzi differ from the entry's, so the row keeps the headword); null otherwise
+  // match hint for the UI, naming the headword a typed form replaced: its reading for a 語音差異
+  // hit, its hanzi + 台羅 for a 詞彙比較 hit (the page the row opens); null otherwise
   function matchedVia(i, h) {
     const f = d.flags[i];
     if (f & FLAG.DIALECT) return { kind: "dialect", text: d.tl[h], poj: d.poj[h], tps: d.tps[h] };
-    if (f & FLAG.COMPARISON) return { kind: "comparison", text: d.hanzi[i] };
+    if (f & FLAG.COMPARISON) return { kind: "comparison", text: d.hanzi[h], tl: d.tl[h] };
     return null;
   }
 
-  // i = the matched row; hanzi etc. come from its head row. A typed 又唸作-type or 語音差異 reading
-  // (same hanzi, other sound) is shown in place of the headword reading, like 去 khìr ㄎㆨ˪
+  // i = the matched row; id, gloss and flags come from its head row. A typed 又唸作-type or
+  // 語音差異 reading or 詞彙比較 word is shown in place of the headword, hanzi and reading as a
+  // pair (去 khìr ㄎㆨ˪, 弓蕉 kin-tsio, 金蕉 kim-tsio)
   function toResult(i, tier, recent) {
     const h = headRow(i);
-    const r = d.flags[i] & (FLAG.READING | FLAG.DIALECT) ? i : h;
+    const r = d.flags[i] & (FLAG.READING | FLAG.ALIAS) ? i : h;
     return {
       i,
       tier,
       id: d.id[h],
       tl: d.tl[r],
-      hanzi: d.hanzi[h],
+      hanzi: d.hanzi[r],
       poj: d.poj[r],
       tps: d.tps[r],
       gloss: d.gloss[h], // first 華語釋義, cut at build time ("" when the entry has none)

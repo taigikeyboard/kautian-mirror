@@ -40,13 +40,13 @@ export function resultRow(res) {
   if (res.poj && res.poj !== res.tl) row.append(el("span", "row-roman poj", res.poj));
   if (res.tps) row.append(el("span", "row-roman tps", res.tps));
   // the entry's other readings: 又唸作-type ones (plus the headword one a typed 唸作 reading
-  // replaced), the headword one a typed 語音差異 reading replaced, or the 詞彙比較 word ("人仔書");
+  // replaced), the headword one a typed 語音差異 reading replaced, or the headword a typed 詞彙比較 word replaced ("尪仔冊 ang-á-tsheh");
   // kind classes: hidden in the dropdown by the 選單顯示 switches (styles.css)
   if (res.readings.length) row.append(viaHint("reading", res.readings));
   if (res.via?.kind === "dialect") {
     row.append(viaHint("dialect", [{ tl: res.via.text, poj: res.via.poj, tps: res.via.tps }]));
   } else if (res.via) {
-    row.append(el("span", `row-via ${res.via.kind}`, res.via.text));
+    row.append(el("span", `row-via ${res.via.kind}`, `${res.via.text} ${res.via.tl}`));
   }
   // source 華語釋義, ellipsized by CSS: tells look-alike rows apart (five 東區 Tang-khu)
   if (res.gloss) row.append(el("span", "row-gloss", res.gloss));

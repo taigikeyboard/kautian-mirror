@@ -58,12 +58,18 @@ test("語音差異 alias: khìr ranks 去 + 課 toned-exact, shown with the type
   );
 });
 
-test("詞彙比較 alias: 人仔書 / lâng-á-tsir find 尪仔冊 as a partial match", () => {
+test("詞彙比較 alias: 人仔書 / lâng-á-tsir find 尪仔冊 as a partial match, shown as the typed word", () => {
   // trace: 詞彙比較 table 23 漫畫書, 鹿港 人仔書 lâng-á-tsir → linked entry 3073 尪仔冊
   for (const q of ["人仔書", "lâng-á-tsir"]) {
     const r = engine.query(q);
-    assert.deepEqual(r.results.map((x) => [x.id, x.hanzi, x.tier]), [[3073, "尪仔冊", TIER.SUBSTR]], q);
+    assert.deepEqual(r.results.map((x) => [x.id, x.hanzi, x.tl, x.tier]), [[3073, "人仔書", "lâng-á-tsir", TIER.SUBSTR]], q);
   }
+});
+
+test("詞彙比較 alias: a same-hanzi word replaces the headword reading (弓蕉 kin-tsio)", () => {
+  // trace: 詞彙比較 table 香蕉, 宜蘭 弓蕉 kin-tsio → linked entry 529 弓蕉 king-tsio
+  const hit = engine.query("kin-tsio").results[0];
+  assert.deepEqual([hit.id, hit.hanzi, hit.tl, hit.via], [529, "弓蕉", "kin-tsio", { kind: "comparison", text: "弓蕉", tl: "king-tsio" }]);
 });
 
 test("詞彙比較 alias: never outranks the headword it duplicates", () => {
@@ -74,12 +80,12 @@ test("詞彙比較 alias: never outranks the headword it duplicates", () => {
   assert.deepEqual(linked.map((x) => x.tier), [TIER.SUBSTR, TIER.SUBSTR]);
 });
 
-test("via: 語音差異 hits show the typed reading, hinting the headword one; 詞彙比較 hits hint the word", () => {
+test("via: 語音差異 / 詞彙比較 hits show the typed form, hinting the headword", () => {
   const top = (q) => engine.query(q, { limit: 3 }).results[0];
   // trace: 語音差異 去(1395) 鹿港 khìr; 詞彙比較 人仔書 → 3073 尪仔冊; 去 typed as its own headword has no hint
   assert.deepEqual([top("khìr").hanzi, top("khìr").tl, top("khìr").tps], ["去", "khìr", "ㄎㆨ˪"]);
   assert.deepEqual(top("khìr").via, { kind: "dialect", text: "khì", poj: "khì", tps: "ㄎㄧ˪" });
-  assert.deepEqual(top("人仔書").via, { kind: "comparison", text: "人仔書" });
+  assert.deepEqual(top("人仔書").via, { kind: "comparison", text: "尪仔冊", tl: "ang-á-tsheh" });
   assert.equal(top("khì").via, null);
 });
 
