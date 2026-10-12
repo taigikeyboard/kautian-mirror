@@ -51,6 +51,7 @@ const bookmarks = createBookmarks(localArea, renderBookmarks);
 
 const input = document.getElementById("q");
 const form = input.form;
+const settingsForm = document.getElementById("settings");
 const view = document.getElementById("view");
 
 // missingAs: value to resolve with on HTTP 404 instead of failing
@@ -168,6 +169,7 @@ async function showEntry(rawId) {
 
 function route() {
   suggest.hide();
+  isPreviewingSettings = false;
   const params = new URLSearchParams(location.search);
   currentEntryId = params.has("id") ? Number(params.get("id")) : null;
   renderBookmarks();
@@ -196,6 +198,7 @@ const suggest = createSuggest({
   input,
   onDismiss: cancelSuggestions,
   box: document.getElementById("suggest"),
+  keepOpenWithin: settingsForm,
   onOpen: (row) => navigate(row.getAttribute("href")),
   onSubmit: () => {
     const query = input.value.trim();
@@ -273,7 +276,19 @@ document.addEventListener("click", (ev) => {
   navigate(href);
 });
 
-initSettings(document.getElementById("settings"), localArea);
+initSettings(settingsForm, localArea);
+// 選單顯示 changes re-render an open dropdown in place; the flag keeps that going after a filter
+// empties (and so hides) the list, until the reader clicks elsewhere or types
+let isPreviewingSettings = false;
+settingsForm.addEventListener("change", () => {
+  if (!isPreviewingSettings && !suggest.isOpen()) return;
+  isPreviewingSettings = true;
+  updateSuggestions();
+});
+document.addEventListener("pointerdown", (ev) => {
+  if (!settingsForm.contains(ev.target)) isPreviewingSettings = false;
+});
+input.addEventListener("keydown", () => (isPreviewingSettings = false));
 initSidebar(document.querySelector(".sidebar-toggle"), document.getElementById("sidebar"), localArea);
 window.addEventListener("popstate", route);
 route();

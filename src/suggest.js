@@ -8,7 +8,8 @@ const BOX_GAP = 8; // matches .suggest top: calc(100% + 8px)
 
 // onDismiss runs on every hide (Escape, outside click, navigation) so the caller
 // can cancel pending suggestion updates that would otherwise reopen the list.
-export function createSuggest({ input, box, onOpen, onSubmit, onDismiss }) {
+// keepOpenWithin: clicks inside it (the settings panel) leave the list open
+export function createSuggest({ input, box, onOpen, onSubmit, onDismiss, keepOpenWithin }) {
   input.setAttribute("role", "combobox");
   input.setAttribute("aria-autocomplete", "list");
   input.setAttribute("aria-controls", box.id);
@@ -105,9 +106,9 @@ export function createSuggest({ input, box, onOpen, onSubmit, onDismiss }) {
   box.addEventListener("click", hide);
 
   document.addEventListener("pointerdown", (ev) => {
-    if (ev.target !== input && !box.contains(ev.target)) hide();
+    if (ev.target !== input && !box.contains(ev.target) && !keepOpenWithin?.contains(ev.target)) hide();
   });
 
   // clearActive: typing invalidates the highlighted row before new results arrive
-  return { render, hide, clearActive: () => setActive(-1) };
+  return { render, hide, clearActive: () => setActive(-1), isOpen: () => !box.hidden };
 }
