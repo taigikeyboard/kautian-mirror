@@ -12,7 +12,7 @@ export function el(tag, className, text) {
   return node;
 }
 
-// res: engine result { id, hanzi, tl, poj, tps, gloss }
+// res: engine result { id, hanzi, tl, poj, tps, gloss, via, readings }
 export function resultRow(res) {
   const row = el("a", "row");
   row.href = entryHref(res.id);
@@ -20,6 +20,10 @@ export function resultRow(res) {
   // poj / tps classes: hidden by the 白話字 / 方音符號 settings (styles.css)
   if (res.poj && res.poj !== res.tl) row.append(el("span", "row-roman poj", res.poj));
   if (res.tps) row.append(el("span", "row-roman tps", res.tps));
+  // 又唸作 / 俗唸作 / 合音唸作 readings, then the alias form that matched ("bôr", "人仔書");
+  // kind classes: hidden in the dropdown by the 選單顯示 switches (styles.css)
+  if (res.readings.length) row.append(el("span", "row-via reading", res.readings.join("、")));
+  if (res.via) row.append(el("span", `row-via ${res.via.kind}`, res.via.text));
   // source 華語釋義, ellipsized by CSS: tells look-alike rows apart (five 東區 Tang-khu)
   if (res.gloss) row.append(el("span", "row-gloss", res.gloss));
   return row;

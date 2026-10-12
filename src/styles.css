@@ -72,7 +72,11 @@
 :root[data-font="genyomin"] { --font: "GenYoMin2 TW", var(--system-font); }
 :root[data-font="genyogothic"] { --font: "GenYoGothic2 TW", var(--system-font); }
 :root[data-poj="off"] .poj, :root[data-tps="off"] .tps { display: none; }
-:root[data-suggest-gloss="off"] .suggest .row-gloss { display: none; }
+/* 選單顯示: dropdown-only display switches (src/index.html) */
+:root[data-suggest-gloss="off"] .suggest .row-gloss,
+:root[data-suggest-reading="off"] .suggest .row-via.reading,
+:root[data-suggest-dialect="off"] .suggest .row-via.dialect,
+:root[data-suggest-comparison="off"] .suggest .row-via.comparison { display: none; }
 
 * { box-sizing: border-box; }
 
@@ -354,6 +358,8 @@ h1 {
 .row.active, .results .row:hover { background: var(--hover); }
 .row-hanzi { overflow-wrap: anywhere; }
 .row-roman { color: var(--secondary); font-size: 0.9375rem; overflow-wrap: anywhere; }
+/* match hint (bôr): why a row turned up for the typed form */
+.row-via { flex: 0 1 auto; min-width: 0; overflow: hidden; color: var(--secondary); font-size: 0.8125rem; white-space: nowrap; text-overflow: ellipsis; }
 /* one line, cut with …; wraps to its own line when under 8em is left */
 .row-gloss {
   flex: 1 1 8em;

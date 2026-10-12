@@ -171,19 +171,43 @@ export function createEngine(packed) {
   // main entries first, variant readings (and aliases) last
   const formRank = (i) => (d.flags[i] & FLAG.MAIN ? 0 : 2) + (d.flags[i] & FLAG.VARIANT ? 1 : 0);
 
-  // entry id → the row that displays it (best formRank, first wins); alias rows never display
+  // alias and 又唸作-type reading rows never display: a hit on one shows the entry headword
+  const HIDDEN_ROW = FLAG.ALIAS | FLAG.READING;
+  // entry id → the row that displays it (best formRank, first wins); entry id → its
+  // 又唸作 / 俗唸作 / 合音唸作 readings (TL, data order); both built on first use
   let heads = null;
-  function headRow(i) {
-    if (!(d.flags[i] & FLAG.ALIAS)) return i;
-    if (!heads) {
-      heads = new Map();
-      for (let j = 0; j < n; j++) {
-        if (d.flags[j] & FLAG.ALIAS) continue;
-        const best = heads.get(d.id[j]);
-        if (best === undefined || formRank(j) < formRank(best)) heads.set(d.id[j], j);
+  let readings = null;
+  function indexEntries() {
+    heads = new Map();
+    readings = new Map();
+    for (let j = 0; j < n; j++) {
+      const id = d.id[j];
+      if (d.flags[j] & FLAG.READING) {
+        if (!readings.has(id)) readings.set(id, []);
+        if (!readings.get(id).includes(d.tl[j])) readings.get(id).push(d.tl[j]);
       }
+      if (d.flags[j] & HIDDEN_ROW) continue;
+      const best = heads.get(id);
+      if (best === undefined || formRank(j) < formRank(best)) heads.set(id, j);
     }
+  }
+  function headRow(i) {
+    if (!(d.flags[i] & HIDDEN_ROW)) return i;
+    if (!heads) indexEntries();
     return heads.get(d.id[i]) ?? i;
+  }
+  // the entry's variant readings other than the displayed one (shown by the site's 選單顯示 switch)
+  function readingsOf(h) {
+    if (!readings) indexEntries();
+    return (readings.get(d.id[h]) ?? []).filter((tl) => tl !== d.tl[h]);
+  }
+
+  // how an alias row matched, for the UI's hint: the 語音差異 reading or the 詞彙比較 word; null otherwise
+  function matchedVia(i) {
+    const f = d.flags[i];
+    if (f & FLAG.DIALECT) return { kind: "dialect", text: d.tl[i] };
+    if (f & FLAG.COMPARISON) return { kind: "comparison", text: d.hanzi[i] };
+    return null;
   }
 
   // i = the matched row; the displayed fields come from its head row
@@ -201,18 +225,17 @@ export function createEngine(packed) {
       main: (d.flags[h] & FLAG.MAIN) !== 0,
       variant: (d.flags[h] & FLAG.VARIANT) !== 0,
       recent, // recently opened by the user (drives the clock hint in the UI)
+      via: matchedVia(i),
+      readings: readingsOf(h),
     };
   }
 
   // tier → recently opened (never crosses a tier boundary) → more used entry
   // (corpus popularity rank) → main entry → non-variant → shorter word;
   // remaining ties keep stable candidate order.
-  // exclude: FLAG bits whose rows are dropped before the limit applies
-  function finalize(tiers, limit, recencyRank, exclude) {
+  function finalize(tiers, limit, recencyRank) {
     // [idx, tier, recency]; recency resolved once per candidate (Infinity = not recent)
-    const entries = [...tiers]
-      .filter(([i]) => !(d.flags[i] & exclude))
-      .map(([i, tier]) => [i, tier, recencyRank?.(d.id[i]) ?? Infinity]);
+    const entries = [...tiers].map(([i, tier]) => [i, tier, recencyRank?.(d.id[i]) ?? Infinity]);
     entries.sort((a, b) => {
       if (a[1] !== b[1]) return a[1] - b[1];
       if (a[2] !== b[2]) return a[2] < b[2] ? -1 : 1;
@@ -349,9 +372,8 @@ export function createEngine(packed) {
 
   // Every non-empty input uses both the normalized search path and a guarded
   // raw-regex scan. Ranked normalized hits stay first; regex expands the set.
-  // exclude: FLAG bits of rows that must not match (the site's dropdown filters); 0 keeps every row
   // → { mode, results, truncated?, error? }
-  function query(input, { limit = 20, recencyRank, exclude = 0 } = {}) {
+  function query(input, { limit = 20, recencyRank } = {}) {
     const mode = classify(input);
     if (mode === "empty") return { mode, results: [] };
 
@@ -375,7 +397,7 @@ export function createEngine(packed) {
       re,
       (i) => add(tiers, i, TIER.REGEX)
     );
-    return { mode, truncated, results: finalize(tiers, limit, recencyRank, exclude) };
+    return { mode, truncated, results: finalize(tiers, limit, recencyRank) };
   }
 
   return { query, randomMainId, randomProverbId, size: n };

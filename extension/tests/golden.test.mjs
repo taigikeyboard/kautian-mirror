@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { createEngine, FLAG, TIER } from "../src/search/engine.js";
+import { createEngine, TIER } from "../src/search/engine.js";
 
 const DATA = join(dirname(fileURLToPath(import.meta.url)), "..", "data", "kautian.min.json");
 if (!existsSync(DATA)) {
@@ -74,20 +74,22 @@ test("詞彙比較 alias: never outranks the headword it duplicates", () => {
   assert.deepEqual(linked.map((x) => x.tier), [TIER.SUBSTR, TIER.SUBSTR]);
 });
 
-test("exclude: dropped row kinds stop matching, the rest still fill the limit", () => {
-  const ids = (q, exclude) => engine.query(q, { limit: 8, exclude }).results.map((x) => x.id);
-  // trace: 語音差異 去(1395) 鹿港 khìr; 詞彙比較 人仔書 → 3073 尪仔冊; 又唸作 欲(7469) bueh
-  assert.ok(ids("khìr").includes(1395));
-  assert.ok(!ids("khìr", FLAG.DIALECT).includes(1395));
-  assert.deepEqual(ids("人仔書"), [3073]);
-  assert.deepEqual(ids("人仔書", FLAG.COMPARISON), []);
-  assert.equal(ids("bueh")[0], 7469);
-  const withoutReadings = ids("bueh", FLAG.READING);
-  assert.ok(!withoutReadings.includes(7469));
-  assert.equal(withoutReadings.length, 8);
-  // each kind only drops its own rows: 語音差異 off keeps 詞彙比較 hits and the reverse
-  assert.deepEqual(ids("人仔書", FLAG.DIALECT | FLAG.READING), [3073]);
-  assert.ok(ids("khìr", FLAG.COMPARISON | FLAG.READING).includes(1395));
+test("via: alias hits say which 語音差異 reading / 詞彙比較 word matched", () => {
+  const top = (q) => engine.query(q, { limit: 3 }).results[0];
+  // trace: 語音差異 去(1395) 鹿港 khìr; 詞彙比較 人仔書 → 3073 尪仔冊; 去 typed as its own headword has no hint
+  assert.deepEqual(top("khìr").via, { kind: "dialect", text: "khìr" });
+  assert.deepEqual(top("人仔書").via, { kind: "comparison", text: "人仔書" });
+  assert.equal(top("khì").via, null);
+});
+
+test("readings: 又唸作-type readings show on the headword row, whichever reading was typed", () => {
+  const top = (q) => engine.query(q, { limit: 3 }).results[0];
+  // trace: 俗唸作 sheet 避免 phiah-bián; 又唸作 sheet 欲(7469) bueh
+  for (const q of ["pī-bián", "phiah-bián"]) {
+    assert.deepEqual([top(q).hanzi, top(q).tl, top(q).readings, top(q).via], ["避免", "pī-bián", ["phiah-bián"], null], q);
+  }
+  assert.deepEqual([top("bueh").id, top("bueh").tl, top("bueh").readings], [7469, "beh", ["bueh"]]);
+  assert.deepEqual(top("khì").readings, []);
 });
 
 test("shared form: 恩 un / 除 tû reach both the 白 and the 文 entry", () => {
@@ -257,13 +259,13 @@ test("fuzzy: sualakku (missing h) → 沙鹿區", () => {
 test("raw regex is merged into ordinary search", () => {
   const a = engine.query("^tshiau");
   assert.ok(a.results.length > 0);
-  // the engine's regex scan includes tlNotone (toneless AND hyphenless)
+  // the engine's regex scan includes tlNotone (toneless AND hyphenless); a 又唸作-type reading
+  // hit shows its headword, the matched reading in `readings` (操煩 tshau-huân, 又唸作 tshiau-huân)
   const notone = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[-\s]+/g, "");
+  const matches = (tl) => /^tshiau/i.test(tl) || /^tshiau/i.test(notone(tl));
   assert.ok(
     a.results.every(
-      (x) =>
-        /^tshiau/i.test(x.tl) || /^tshiau/i.test(notone(x.tl)) ||
-        /^tshiau/i.test(x.poj) || /^tshiau/i.test(x.hanzi)
+      (x) => matches(x.tl) || /^tshiau/i.test(x.poj) || /^tshiau/i.test(x.hanzi) || x.readings.some(matches)
     )
   );
   const b = engine.query("[");
