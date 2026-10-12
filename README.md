@@ -62,9 +62,10 @@ rank more used words first.
 
 ## Data updates
 
-`.github/workflows/upstream-check.yml` checks the MOE `kautian.ods` weekly and opens an issue
-when it changes. To update: replace `extension/kautian.ods`, `make build test`, push `main`
-(deploys the site), then `make package` and upload the zip to the Chrome Web Store.
+taigikeyboard's `Kautian watch` workflow checks the MOE `kautian.ods` weekly and opens an issue
+there when its rows change. Once taigikeyboard refreshes its capture: `make sync-data`,
+`make build test`, push `main` (deploys the site), then `make package` and upload the zip to the
+Chrome Web Store.
 
 The ODS has the 詞彙比較 tables but not which entry shows which table (MOE curates the links,
 sometimes across unrelated hanzi), so `npm run build:comparisons` reads them off every official
