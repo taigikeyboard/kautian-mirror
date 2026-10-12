@@ -72,6 +72,7 @@
 :root[data-font="genyomin"] { --font: "GenYoMin2 TW", var(--system-font); }
 :root[data-font="genyogothic"] { --font: "GenYoGothic2 TW", var(--system-font); }
 :root[data-poj="off"] .poj, :root[data-tps="off"] .tps { display: none; }
+:root[data-suggest-gloss="off"] .suggest .row-gloss { display: none; }
 
 * { box-sizing: border-box; }
 
@@ -197,6 +198,7 @@ a:hover { text-decoration: underline; }
   font-size: 0.9375rem;
 }
 .setting + .setting { border-top: 1px solid var(--hairline); }
+.settings-heading { margin-top: 1.25rem; padding-bottom: 0.25rem; color: var(--secondary); font-size: 0.8125rem; }
 /* borderless pop-up value with a small chevron, like a macOS settings row */
 .setting select {
   padding: 0.25rem 1.125rem 0.25rem 0.25rem;

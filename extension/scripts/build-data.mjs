@@ -77,10 +77,10 @@ const formKey = (roman, hanzi) => `${roman}${hanzi}`;
 
 function loadOdsForms(entries) {
   const xml = readZipEntry(SRC_ODS, "content.xml").toString("utf8");
-  // key → Map(id → { id, variant, tl, hanzi }) (tl/hanzi = display forms); one key can belong to
+  // key → Map(id → { id, variant, reading, tl, hanzi }) (reading: from a 唸作 sheet) (tl/hanzi = display forms); one key can belong to
   // several entries: 恩 【白】in/un + 【文】un, 陳 tân + surname Tân, five 東區 Tang-khu
   const forms = new Map();
-  const put = (id, roman, hanzi, variant) => {
+  const put = (id, roman, hanzi, variant, reading = false) => {
     for (const r of roman.split("/")) {
       if (!r.trim()) continue;
       const k = formKey(keyRoman(r), normHanzi(hanzi));
@@ -88,7 +88,7 @@ function loadOdsForms(entries) {
       const byId = forms.get(k);
       const existing = byId.get(id);
       if (!existing || (existing.variant && !variant)) {
-        byId.set(id, { id, variant, tl: displayRoman(r), hanzi: normHanzi(hanzi) });
+        byId.set(id, { id, variant, reading, tl: displayRoman(r), hanzi: normHanzi(hanzi) });
       }
     }
   };
@@ -110,7 +110,7 @@ function loadOdsForms(entries) {
     for (const r of sheetRows(xml, sheet).slice(1)) {
       if (r.length < 3) continue;
       const id = Math.trunc(Number(r[0]));
-      if (okIds.has(id)) put(id, r[2], r[1], 1);
+      if (okIds.has(id)) put(id, r[2], r[1], 1, true);
     }
   }
   // 異用字: variant hanzi spellings; readings come from the parent entry
@@ -206,6 +206,9 @@ const noteUsage = (id, k, frequency) => {
 const toSiteTlNum = (tl) =>
   toToneNumber(tl).toLowerCase().replace(/--|[-\s]+/g, " ").trim();
 
+// FLAG bits of an ODS form that is not a main entry form
+const variantFlags = (form) => (form.variant ? FLAG.VARIANT : 0) | (form.reading ? FLAG.READING : 0);
+
 const cols = Object.fromEntries(Object.keys(SHIP).map((k) => [k, []]));
 const ids = [];
 const flags = []; // FLAG bits (engine.js)
@@ -236,7 +239,7 @@ for (const r of rows) {
   for (const hit of hits.values()) {
     for (const name of Object.keys(SHIP)) cols[name].push(values[name]);
     ids.push(hit.id);
-    flags.push((get(iMain) === "True" ? FLAG.MAIN : 0) | (hit.variant ? FLAG.VARIANT : 0));
+    flags.push((get(iMain) === "True" ? FLAG.MAIN : 0) | variantFlags(hit));
     noteUsage(hit.id, k, Number(get(iFrequency)) || 0);
   }
 
@@ -292,7 +295,7 @@ let synthesized = 0;
 for (const [k, byId] of odsForms) {
   if (covered.has(k)) continue;
   for (const form of byId.values()) {
-    pushSynthesized(form.tl, form.hanzi, form.id, form.variant ? FLAG.VARIANT : FLAG.MAIN);
+    pushSynthesized(form.tl, form.hanzi, form.id, form.variant ? variantFlags(form) : FLAG.MAIN);
     noteUsage(form.id, k, 0);
     synthesized++;
   }
@@ -301,7 +304,7 @@ for (const [k, byId] of odsForms) {
 // skip them
 const ALIAS_FLAGS = FLAG.VARIANT | FLAG.ALIAS;
 for (const alias of aliases) {
-  pushSynthesized(alias.tl, alias.hanzi, alias.id, alias.comparison ? ALIAS_FLAGS | FLAG.COMPARISON : ALIAS_FLAGS);
+  pushSynthesized(alias.tl, alias.hanzi, alias.id, ALIAS_FLAGS | (alias.comparison ? FLAG.COMPARISON : FLAG.DIALECT));
 }
 const comparisonAliases = aliases.filter((a) => a.comparison).length;
 

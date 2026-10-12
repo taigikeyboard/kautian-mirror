@@ -1,5 +1,5 @@
 // App entry: URL routing (?q= / ?id=), lazy data loading, search-as-you-type.
-import { createEngine } from "../extension/src/search/engine.js";
+import { createEngine, FLAG } from "../extension/src/search/engine.js";
 import { CONFIG } from "../extension/src/content/config.js";
 import { createRecency } from "../extension/src/content/recency.js";
 import { createSuggest } from "./suggest.js";
@@ -203,6 +203,16 @@ const suggest = createSuggest({
   },
 });
 
+// 選單顯示 switches (src/settings.js → <html data-*>); they filter the dropdown only, never ?q= results
+const SUGGEST_EXCLUDES = { suggestReading: FLAG.READING, suggestDialect: FLAG.DIALECT, suggestComparison: FLAG.COMPARISON };
+function suggestExclude() {
+  let exclude = 0;
+  for (const [name, flag] of Object.entries(SUGGEST_EXCLUDES)) {
+    if (document.documentElement.dataset[name] === "off") exclude |= flag;
+  }
+  return exclude;
+}
+
 async function updateSuggestions() {
   const query = input.value.trim();
   if (!query) return suggest.hide();
@@ -215,7 +225,8 @@ async function updateSuggestions() {
     }
     if (seq !== suggestSeq) return;
   }
-  const headwords = engine.query(query, { limit: CONFIG.LIMIT, recencyRank: recency.rankOf });
+  const headwords = engine.query(query, { limit: CONFIG.LIMIT, recencyRank: recency.rankOf, exclude: suggestExclude() });
+  if (document.documentElement.dataset.suggestExamples === "off") return suggest.render(headwords);
   if (exampleSearch) return suggest.render(headwords, exampleSearch.search(query, SUGGEST_EXAMPLES_LIMIT));
   // 例句 still loading: headwords show now, the list re-renders once 例句 arrive
   suggest.render(headwords);

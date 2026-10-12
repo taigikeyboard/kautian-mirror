@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { createEngine, TIER } from "../src/search/engine.js";
+import { createEngine, FLAG, TIER } from "../src/search/engine.js";
 
 const DATA = join(dirname(fileURLToPath(import.meta.url)), "..", "data", "kautian.min.json");
 if (!existsSync(DATA)) {
@@ -72,6 +72,22 @@ test("詞彙比較 alias: never outranks the headword it duplicates", () => {
   assert.deepEqual([r.results[0].id, r.results[0].tier], [12076, TIER.EXACT]);
   const linked = r.results.filter((x) => x.id === 519 || x.id === 12539);
   assert.deepEqual(linked.map((x) => x.tier), [TIER.SUBSTR, TIER.SUBSTR]);
+});
+
+test("exclude: dropped row kinds stop matching, the rest still fill the limit", () => {
+  const ids = (q, exclude) => engine.query(q, { limit: 8, exclude }).results.map((x) => x.id);
+  // trace: 語音差異 去(1395) 鹿港 khìr; 詞彙比較 人仔書 → 3073 尪仔冊; 又唸作 欲(7469) bueh
+  assert.ok(ids("khìr").includes(1395));
+  assert.ok(!ids("khìr", FLAG.DIALECT).includes(1395));
+  assert.deepEqual(ids("人仔書"), [3073]);
+  assert.deepEqual(ids("人仔書", FLAG.COMPARISON), []);
+  assert.equal(ids("bueh")[0], 7469);
+  const withoutReadings = ids("bueh", FLAG.READING);
+  assert.ok(!withoutReadings.includes(7469));
+  assert.equal(withoutReadings.length, 8);
+  // each kind only drops its own rows: 語音差異 off keeps 詞彙比較 hits and the reverse
+  assert.deepEqual(ids("人仔書", FLAG.DIALECT | FLAG.READING), [3073]);
+  assert.ok(ids("khìr", FLAG.COMPARISON | FLAG.READING).includes(1395));
 });
 
 test("shared form: 恩 un / 除 tû reach both the 白 and the 文 entry", () => {

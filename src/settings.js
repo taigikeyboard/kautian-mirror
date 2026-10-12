@@ -1,5 +1,5 @@
-// Display settings panel (外觀, 字型, 白話字, 方音符號): each choice is a <html data-*>
-// attribute styles.css keys on, saved under "settings"; index.html re-applies it before first paint.
+// Settings panel (外觀, 字型, 白話字, 方音符號, 選單顯示): each choice is a <html data-*> attribute
+// styles.css / main.js key on, saved under "settings"; index.html re-applies it before first paint.
 
 // checkboxes store "on" / "off" so every setting is a plain data-* string
 const controlValue = (control) => (control.type === "checkbox" ? (control.checked ? "on" : "off") : control.value);

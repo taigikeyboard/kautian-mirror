@@ -79,6 +79,23 @@
       <label class="setting">方音符號
         <input type="checkbox" name="tps" role="switch" checked>
       </label>
+      <!-- 選單顯示: what the search-as-you-type dropdown lists; the ?q= results page always lists everything -->
+      <div class="settings-heading">選單顯示</div>
+      <label class="setting">釋義
+        <input type="checkbox" name="suggestGloss" role="switch" checked>
+      </label>
+      <label class="setting">例句
+        <input type="checkbox" name="suggestExamples" role="switch" checked>
+      </label>
+      <label class="setting">又唸作／合音唸作
+        <input type="checkbox" name="suggestReading" role="switch" checked>
+      </label>
+      <label class="setting">語音差異
+        <input type="checkbox" name="suggestDialect" role="switch" checked>
+      </label>
+      <label class="setting">詞彙比較
+        <input type="checkbox" name="suggestComparison" role="switch" checked>
+      </label>
     </form>
     <!-- 收藏: filled by main.js, hidden while empty; below the settings so the list can grow -->
     <nav id="bookmarks" class="bookmarks" aria-label="收藏" hidden></nav>

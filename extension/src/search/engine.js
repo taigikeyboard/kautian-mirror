@@ -30,6 +30,8 @@ export const FLAG = {
   VARIANT: 2, // variant reading/spelling
   ALIAS: 4, // search alias (語音差異 reading / 詞彙比較 word), shown as its entry headword
   COMPARISON: 8, // 詞彙比較 word
+  DIALECT: 16, // 語音差異 reading (an ALIAS row without COMPARISON)
+  READING: 32, // 又唸作 / 俗唸作 / 合音唸作 reading (a VARIANT row; 異用字 spellings lack it)
 };
 
 const STR_COLS = ["tl", "hanzi", "poj", "tps", "tlNum", "tpsNotoneVar", "abTl", "abPoj", "abTps", "gloss"];
@@ -205,9 +207,12 @@ export function createEngine(packed) {
   // tier → recently opened (never crosses a tier boundary) → more used entry
   // (corpus popularity rank) → main entry → non-variant → shorter word;
   // remaining ties keep stable candidate order.
-  function finalize(tiers, limit, recencyRank) {
+  // exclude: FLAG bits whose rows are dropped before the limit applies
+  function finalize(tiers, limit, recencyRank, exclude) {
     // [idx, tier, recency]; recency resolved once per candidate (Infinity = not recent)
-    const entries = [...tiers].map(([i, tier]) => [i, tier, recencyRank?.(d.id[i]) ?? Infinity]);
+    const entries = [...tiers]
+      .filter(([i]) => !(d.flags[i] & exclude))
+      .map(([i, tier]) => [i, tier, recencyRank?.(d.id[i]) ?? Infinity]);
     entries.sort((a, b) => {
       if (a[1] !== b[1]) return a[1] - b[1];
       if (a[2] !== b[2]) return a[2] < b[2] ? -1 : 1;
@@ -344,8 +349,9 @@ export function createEngine(packed) {
 
   // Every non-empty input uses both the normalized search path and a guarded
   // raw-regex scan. Ranked normalized hits stay first; regex expands the set.
+  // exclude: FLAG bits of rows that must not match (the site's dropdown filters); 0 keeps every row
   // → { mode, results, truncated?, error? }
-  function query(input, { limit = 20, recencyRank } = {}) {
+  function query(input, { limit = 20, recencyRank, exclude = 0 } = {}) {
     const mode = classify(input);
     if (mode === "empty") return { mode, results: [] };
 
@@ -369,7 +375,7 @@ export function createEngine(packed) {
       re,
       (i) => add(tiers, i, TIER.REGEX)
     );
-    return { mode, truncated, results: finalize(tiers, limit, recencyRank) };
+    return { mode, truncated, results: finalize(tiers, limit, recencyRank, exclude) };
   }
 
   return { query, randomMainId, randomProverbId, size: n };
