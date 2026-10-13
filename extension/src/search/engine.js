@@ -215,6 +215,12 @@ export function createEngine(packed) {
     return null;
   }
 
+  // Fullwidth clause punctuation in the hanzi form marks proverb-like entries
+  // (~470 of ~34k main entries; validated by sampling).
+  // ；？ are insurance for future data — today every such entry also has ，。
+  // 、and （） stay excluded on purpose: those mark place/station names.
+  const PROVERB_RE = /[，。；？]/;
+
   // i = the matched row; id, gloss and flags come from its head row. A typed 又唸作-type or
   // 語音差異 reading or 詞彙比較 word is shown in place of the headword, hanzi and reading as a
   // pair (去 khìr ㄎㆨ˪, 弓蕉 kin-tsio, 金蕉 kim-tsio)
@@ -233,6 +239,7 @@ export function createEngine(packed) {
       main: (d.flags[h] & FLAG.MAIN) !== 0,
       variant: (d.flags[h] & FLAG.VARIANT) !== 0,
       recent, // recently opened by the user (drives the clock hint in the UI)
+      proverb: PROVERB_RE.test(d.hanzi[h]), // 俗諺 (hidden by the site's 選單顯示 俗語 switch)
       via: matchedVia(i, h),
       readings: readingsOf(h, r),
     };
@@ -285,11 +292,6 @@ export function createEngine(packed) {
     return d.id[mainRows[Math.floor(rand() * mainRows.length)]];
   }
 
-  // Experimental: fullwidth clause punctuation in the hanzi form marks
-  // proverb-like entries (~470 of ~34k main entries; validated by sampling).
-  // ；？ are insurance for future data — today every such entry also has ，。
-  // 、and （） stay excluded on purpose: those mark place/station names.
-  const PROVERB_RE = /[，。；？]/;
   let proverbRows = null;
   function randomProverbId(rand = Math.random) {
     if (!proverbRows) {

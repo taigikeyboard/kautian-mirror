@@ -219,8 +219,11 @@ async function updateSuggestions() {
     if (seq !== suggestSeq) return;
   }
   const headwords = engine.query(query, { limit: CONFIG.LIMIT, recencyRank: recency.rankOf });
-  // 選單顯示 例句 switch (src/settings.js → <html data-*>); the ?q= results page always lists 例句
-  if (document.documentElement.dataset.suggestExamples === "off") return suggest.render(headwords);
+  // 選單顯示 俗語 / 例句 switches (src/settings.js → <html data-*>); the ?q= results page
+  // always lists 俗諺 and 例句
+  const { suggestProverbs, suggestExamples } = document.documentElement.dataset;
+  if (suggestProverbs === "off") headwords.results = headwords.results.filter((res) => !res.proverb);
+  if (suggestExamples === "off") return suggest.render(headwords);
   if (exampleSearch) return suggest.render(headwords, exampleSearch.search(query, SUGGEST_EXAMPLES_LIMIT));
   // 例句 still loading: headwords show now, the list re-renders once 例句 arrive
   suggest.render(headwords);

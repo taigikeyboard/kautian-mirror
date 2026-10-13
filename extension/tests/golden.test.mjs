@@ -89,6 +89,13 @@ test("via: 語音差異 / 詞彙比較 hits show the typed form, hinting the hea
   assert.equal(top("khì").via, null);
 });
 
+test("proverb: fullwidth-punctuated headwords are flagged 俗諺", () => {
+  const top = (q) => engine.query(q, { limit: 3 }).results[0];
+  // trace: 26848 一人一家代，公媽隨人祀。 has ，。; 2607 行 has none
+  assert.deepEqual([top("一人一家代").id, top("一人一家代").proverb], [26848, true]);
+  assert.deepEqual([top("kiânn").id, top("kiânn").proverb], [2607, false]);
+});
+
 test("readings: a typed 又唸作-type reading replaces the headword one, which joins the hint", () => {
   const top = (q) => engine.query(q, { limit: 3 }).results[0];
   // trace: 俗唸作 sheet 避免 phiah-bián; 又唸作 sheet 欲(7469) bueh
