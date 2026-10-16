@@ -72,11 +72,10 @@
 :root[data-font="genyomin"] { --font: "GenYoMin2 TW", var(--system-font); }
 :root[data-font="genyogothic"] { --font: "GenYoGothic2 TW", var(--system-font); }
 :root[data-poj="off"] .poj, :root[data-tps="off"] .tps { display: none; }
-/* 選單顯示: dropdown-only display switches (src/index.html) */
+/* 選單顯示: dropdown-only display switches (src/index.html); 語音差異 / 詞彙比較 / 異用字 hints
+   have none: a row opens a headword that differs from the typed form, so its hint always shows */
 :root[data-suggest-gloss="off"] .suggest .row-gloss,
-:root[data-suggest-reading="off"] .suggest .row-via.reading,
-:root[data-suggest-dialect="off"] .suggest .row-via.dialect,
-:root[data-suggest-comparison="off"] .suggest .row-via.comparison { display: none; }
+:root[data-suggest-reading="off"] .suggest .row-via.reading { display: none; }
 
 * { box-sizing: border-box; }
 

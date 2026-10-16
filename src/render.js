@@ -23,7 +23,7 @@ function romanSpans(tl, poj, tps) {
 
 // match hint naming the headword form a typed form replaced (engine matchedVia): the headword
 // reading for a 又唸作-type / 語音差異 hit, hanzi + 台羅 for 詞彙比較, the 正字 for 異用字;
-// kind classes: hidden in the dropdown by the 選單顯示 switches (styles.css)
+// kind class: the reading hint is hidden in the dropdown by its 選單顯示 switch (styles.css)
 function viaHint({ kind, text, tl, poj, tps }) {
   const hint = el("span", `row-via ${kind}`);
   if (kind === "reading" || kind === "dialect") hint.append(...romanSpans(text, poj, tps));
