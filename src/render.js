@@ -21,17 +21,17 @@ function romanSpans(tl, poj, tps) {
   return spans;
 }
 
-// match hint: readings as 台羅 / POJ / 方音符號 groups, joined by "、"
-function viaHint(kind, readings) {
+// match hint naming the headword form a typed form replaced (engine matchedVia): the headword
+// reading for a 又唸作-type / 語音差異 hit, hanzi + 台羅 for 詞彙比較, the 正字 for 異用字;
+// kind classes: hidden in the dropdown by the 選單顯示 switches (styles.css)
+function viaHint({ kind, text, tl, poj, tps }) {
   const hint = el("span", `row-via ${kind}`);
-  readings.forEach(({ tl, poj, tps }, n) => {
-    if (n) hint.append("、");
-    hint.append(...romanSpans(tl, poj, tps));
-  });
+  if (kind === "reading" || kind === "dialect") hint.append(...romanSpans(text, poj, tps));
+  else hint.textContent = tl ? `${text} ${tl}` : text;
   return hint;
 }
 
-// res: engine result { id, hanzi, tl, poj, tps, gloss, via, readings }
+// res: engine result { id, hanzi, tl, poj, tps, gloss, via }
 export function resultRow(res) {
   const row = el("a", "row");
   row.href = entryHref(res.id);
@@ -39,15 +39,7 @@ export function resultRow(res) {
   // poj / tps classes: hidden by the 白話字 / 方音符號 settings (styles.css)
   if (res.poj && res.poj !== res.tl) row.append(el("span", "row-roman poj", res.poj));
   if (res.tps) row.append(el("span", "row-roman tps", res.tps));
-  // the entry's other readings: 又唸作-type ones (plus the headword one a typed 唸作 reading
-  // replaced), the headword one a typed 語音差異 reading replaced, or the headword a typed 詞彙比較 word replaced ("尪仔冊 ang-á-tsheh");
-  // kind classes: hidden in the dropdown by the 選單顯示 switches (styles.css)
-  if (res.readings.length) row.append(viaHint("reading", res.readings));
-  if (res.via?.kind === "dialect") {
-    row.append(viaHint("dialect", [{ tl: res.via.text, poj: res.via.poj, tps: res.via.tps }]));
-  } else if (res.via) {
-    row.append(el("span", `row-via ${res.via.kind}`, `${res.via.text} ${res.via.tl}`));
-  }
+  if (res.via) row.append(viaHint(res.via));
   // source 華語釋義, ellipsized by CSS: tells look-alike rows apart (five 東區 Tang-khu)
   if (res.gloss) row.append(el("span", "row-gloss", res.gloss));
   return row;

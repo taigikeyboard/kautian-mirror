@@ -96,14 +96,22 @@ test("proverb: fullwidth-punctuated headwords are flagged 俗諺", () => {
   assert.deepEqual([top("kiânn").id, top("kiânn").proverb], [2607, false]);
 });
 
-test("readings: a typed 又唸作-type reading replaces the headword one, which joins the hint", () => {
+test("readings: a typed 又唸作-type reading replaces the headword one, hinting only it", () => {
   const top = (q) => engine.query(q, { limit: 3 }).results[0];
-  // trace: 俗唸作 sheet 避免 phiah-bián; 又唸作 sheet 欲(7469) bueh
-  for (const [q, other] of [["pī-bián", "phiah-bián"], ["phiah-bián", "pī-bián"]]) {
-    assert.deepEqual([top(q).hanzi, top(q).tl, top(q).readings.map((r) => r.tl), top(q).via], ["避免", q, [other], null], q);
-  }
-  assert.deepEqual([top("bueh").id, top("bueh").tl, top("bueh").readings], [7469, "bueh", [{ tl: "beh", poj: "beh", tps: "ㆠㆤㆷ" }]]);
-  assert.deepEqual(top("khì").readings, []);
+  // trace: 俗唸作 sheet 避免 phiah-bián; 又唸作 sheet 欲(7469) bueh; 合音唸作 就按呢(8306) tsua̋n,
+  // headword rows tsiū-án-ne / tsiū-án-ni → first wins; other 唸作 readings stay on the entry page
+  assert.deepEqual([top("phiah-bián").hanzi, top("phiah-bián").tl, top("phiah-bián").via?.text], ["避免", "phiah-bián", "pī-bián"]);
+  assert.equal(top("pī-bián").via, null);
+  assert.deepEqual([top("bueh").id, top("bueh").tl, top("bueh").via], [7469, "bueh", { kind: "reading", text: "beh", poj: "beh", tps: "ㆠㆤㆷ" }]);
+  assert.deepEqual([top("tsua̋n").hanzi, top("tsua̋n").tl, top("tsua̋n").via.text], ["就按呢", "tsua̋n", "tsiū-án-ne"]);
+  assert.equal(top("就按呢").via, null);
+});
+
+test("異用字: a variant spelling hints its 正字 and ranks after 正字 rows of its tier", () => {
+  // trace: 異用字 sheet 甲 → 到(3592) kàu, 佮(3524) kah; 甲 is also headword 1848 / 1847 / 14726;
+  // pop 到 26, 佮 71 < 甲 89 / 95 used to put both 異用字 rows first
+  const r = engine.query("甲").results.filter((x) => x.tier === TIER.EXACT);
+  assert.deepEqual(r.map((x) => [x.id, x.via?.text ?? null]), [[1848, null], [1847, null], [14726, null], [3592, "到"], [3524, "佮"]]);
 });
 
 test("shared form: 恩 un / 除 tû reach both the 白 and the 文 entry", () => {
@@ -274,12 +282,12 @@ test("raw regex is merged into ordinary search", () => {
   const a = engine.query("^tshiau");
   assert.ok(a.results.length > 0);
   // the engine's regex scan includes tlNotone (toneless AND hyphenless); a 又唸作-type reading
-  // hit shows its headword, the matched reading in `readings` (操煩 tshau-huân, 又唸作 tshiau-huân)
+  // hit shows the matched reading as its tl (操煩 又唸作 tshiau-huân)
   const notone = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[-\s]+/g, "");
   const matches = (tl) => /^tshiau/i.test(tl) || /^tshiau/i.test(notone(tl));
   assert.ok(
     a.results.every(
-      (x) => matches(x.tl) || /^tshiau/i.test(x.poj) || /^tshiau/i.test(x.hanzi) || x.readings.some((r) => matches(r.tl))
+      (x) => matches(x.tl) || /^tshiau/i.test(x.poj) || /^tshiau/i.test(x.hanzi)
     )
   );
   const b = engine.query("[");

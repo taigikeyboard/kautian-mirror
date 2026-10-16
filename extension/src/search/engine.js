@@ -173,45 +173,33 @@ export function createEngine(packed) {
 
   // alias and 又唸作-type reading rows never display: a hit on one shows the entry headword
   const HIDDEN_ROW = FLAG.ALIAS | FLAG.READING;
-  // entry id → the row that displays it (best formRank, first wins); entry id → its
-  // 又唸作 / 俗唸作 / 合音唸作 readings (data order, one per TL); both built on first use
+  // 異用字 spelling: a variant row that is neither a 唸作 reading nor an alias
+  const isVariantSpelling = (i) => (d.flags[i] & (FLAG.VARIANT | FLAG.READING | FLAG.ALIAS)) === FLAG.VARIANT;
+  // entry id → its headword row (best formRank among displayable rows, first wins), built on first use
   let heads = null;
-  let readings = null;
-  const romans = (i) => ({ tl: d.tl[i], poj: d.poj[i], tps: d.tps[i] });
-  function indexEntries() {
-    heads = new Map();
-    readings = new Map();
-    for (let j = 0; j < n; j++) {
-      const id = d.id[j];
-      if (d.flags[j] & FLAG.READING) {
-        if (!readings.has(id)) readings.set(id, []);
-        if (!readings.get(id).some((r) => r.tl === d.tl[j])) readings.get(id).push(romans(j));
+  function entryHead(i) {
+    if (!heads) {
+      heads = new Map();
+      for (let j = 0; j < n; j++) {
+        if (d.flags[j] & HIDDEN_ROW) continue;
+        const best = heads.get(d.id[j]);
+        if (best === undefined || formRank(j) < formRank(best)) heads.set(d.id[j], j);
       }
-      if (d.flags[j] & HIDDEN_ROW) continue;
-      const best = heads.get(id);
-      if (best === undefined || formRank(j) < formRank(best)) heads.set(id, j);
     }
-  }
-  function headRow(i) {
-    if (!(d.flags[i] & HIDDEN_ROW)) return i;
-    if (!heads) indexEntries();
     return heads.get(d.id[i]) ?? i;
   }
-  // the entry's 又唸作-type readings other than the shown one (r = shown row), the headword
-  // reading first when a typed 唸作 reading replaced it (shown by the site's 選單顯示 switch)
-  function readingsOf(h, r) {
-    if (!readings) indexEntries();
-    const all = readings.get(d.id[h]) ?? [];
-    const withHead = d.flags[r] & FLAG.READING ? [romans(h), ...all] : all;
-    return withHead.filter((x) => x.tl !== d.tl[r]);
-  }
+  const headRow = (i) => (d.flags[i] & HIDDEN_ROW ? entryHead(i) : i);
 
-  // match hint for the UI, naming the headword a typed form replaced: its reading for a 語音差異
-  // hit, its hanzi + 台羅 for a 詞彙比較 hit (the page the row opens); null otherwise
+  // match hint for the UI, naming the headword form a typed form replaced: its reading for a
+  // 又唸作-type or 語音差異 hit, its hanzi + 台羅 for a 詞彙比較 hit (the page the row opens),
+  // the 正字 hanzi for a 異用字 hit; null otherwise
   function matchedVia(i, h) {
     const f = d.flags[i];
-    if (f & FLAG.DIALECT) return { kind: "dialect", text: d.tl[h], poj: d.poj[h], tps: d.tps[h] };
+    if (f & (FLAG.READING | FLAG.DIALECT)) {
+      return { kind: f & FLAG.READING ? "reading" : "dialect", text: d.tl[h], poj: d.poj[h], tps: d.tps[h] };
+    }
     if (f & FLAG.COMPARISON) return { kind: "comparison", text: d.hanzi[h], tl: d.tl[h] };
+    if (isVariantSpelling(i)) return { kind: "variant", text: d.hanzi[entryHead(i)] };
     return null;
   }
 
@@ -241,12 +229,11 @@ export function createEngine(packed) {
       recent, // recently opened by the user (drives the clock hint in the UI)
       proverb: PROVERB_RE.test(d.hanzi[h]), // 俗諺 (hidden by the site's 選單顯示 俗語 switch)
       via: matchedVia(i, h),
-      readings: readingsOf(h, r),
     };
   }
 
-  // tier → recently opened (never crosses a tier boundary) → more used entry
-  // (corpus popularity rank) → main entry → non-variant → shorter word;
+  // tier → recently opened (never crosses a tier boundary) → 正字 before 異用字 spelling →
+  // more used entry (corpus popularity rank) → main entry → non-variant → shorter word;
   // remaining ties keep stable candidate order.
   function finalize(tiers, limit, recencyRank) {
     // [idx, tier, recency]; recency resolved once per candidate (Infinity = not recent)
@@ -254,6 +241,8 @@ export function createEngine(packed) {
     entries.sort((a, b) => {
       if (a[1] !== b[1]) return a[1] - b[1];
       if (a[2] !== b[2]) return a[2] < b[2] ? -1 : 1;
+      const va = isVariantSpelling(a[0]);
+      if (va !== isVariantSpelling(b[0])) return va ? 1 : -1;
       if (d.pop[a[0]] !== d.pop[b[0]]) return d.pop[a[0]] - d.pop[b[0]];
       const fa = formRank(a[0]);
       const fb = formRank(b[0]);
