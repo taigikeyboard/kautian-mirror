@@ -9595,8 +9595,8 @@ hanji	tl	count	icorpus_hanji	khinhoan_pojbh	kipsupin_2009	kok4hau7	moe_kautian	n
 嘛嘛吼	mà-mà-háu	6	0	0	1	1	3	0	1	0	0
 嘛是	mā sī	414	398	14	1	0	0	1	0	0	0
 嘛有	mā-ū	90	90	0	0	0	0	0	0	0	0
+嘛欲	mā bueh	3	3	0	0	0	0	0	0	0	0
 嘛欲	mā-beh	16	16	0	0	0	0	0	0	0	0
-嘛欲	mā-bueh	3	3	0	0	0	0	0	0	0	0
 嘛著	mā-tio̍h	8	7	1	0	0	0	0	0	0	0
 嘩	hua	10	0	0	10	0	0	0	0	0	0
 嘩	huā	9	0	5	2	0	0	0	0	2	0
@@ -16051,7 +16051,7 @@ hanji	tl	count	icorpus_hanji	khinhoan_pojbh	kipsupin_2009	kok4hau7	moe_kautian	n
 幾號	kuí-hō	3	2	0	0	0	0	1	0	0	0
 幾那	kuí-nā	9	0	3	6	0	0	0	0	0	0
 幾點	kuí-tiám	14	2	2	0	0	0	9	0	1	0
-庄	tsng	608	20	145	239	0	5	195	0	4	0
+庄	tsng	607	20	145	238	0	5	195	0	4	0
 庄中	tsng-tiong	44	0	4	35	0	0	5	0	0	0
 庄仔頭	tsng-á-thâu	2	0	0	1	0	1	0	0	0	0
 庄內	tsng-lāi	49	4	1	17	0	0	25	0	2	0
@@ -22059,8 +22059,9 @@ hanji	tl	count	icorpus_hanji	khinhoan_pojbh	kipsupin_2009	kok4hau7	moe_kautian	n
 新化	sin-huà	20	9	8	0	0	0	3	0	0	0
 新北市	sin-pak-tshī	66	64	0	0	0	2	0	0	0	0
 新北投	sin-pak-tâu	2	0	0	2	0	0	0	0	0	0
-新厝	sin-tshù	27	9	2	8	0	0	8	0	0	0
+新厝	sin-tshù	26	9	2	7	0	0	8	0	0	0
 新厝仔	sin-tshù-á	1	1	0	0	0	0	0	0	0	0
+新厝庄	sin-tshù-tsng	1	0	0	1	0	0	0	0	0	0
 新台票	sin-tâi-phiò	1	0	0	0	0	0	1	0	0	0
 新嘗祭	sin-siông-tsè	2	0	0	2	0	0	0	0	0	0
 新囚	sin-siû	1	1	0	0	0	0	0	0	0	0
@@ -23926,7 +23927,7 @@ hanji	tl	count	icorpus_hanji	khinhoan_pojbh	kipsupin_2009	kok4hau7	moe_kautian	n
 東石	tang-tsio̍h	31	18	6	6	0	0	1	0	0	0
 東石鄉	tang-tsio̍h-hiong	11	11	0	0	0	0	0	0	0	0
 東竹	tang-tik	4	0	0	2	0	0	2	0	0	0
-東筊	tong kiáu	2	0	0	0	0	2	0	0	0	0
+東筊	tong-kiáu	2	0	0	0	0	2	0	0	0	0
 東經	tang-king	7	0	3	0	0	0	4	0	0	0
 東西	tang-sai	102	10	11	67	0	0	12	0	2	0
 東西	tong-si	3	0	0	3	0	0	0	0	0	0

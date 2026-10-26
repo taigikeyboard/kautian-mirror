@@ -4346,6 +4346,9 @@ huān,患,True,False,0,True,100,hoān,huan7,hoan7,ㄏㄨㄢ˫,,huan,hoan,ㄏㄨ�
 pi-siong,悲傷,True,False,0,False,100,pi-siong,pi1siong1,pi1siong1,ㄅㄧㄒㄧㆲ,,pisiong,pisiong,ㄅㄧㄒㄧㆲ,,ps,ps,ㄅㄒ,,True,False
 tshi,悽,True,False,0,True,100,chhi,tshi1,chhi1,ㄑㄧ,,tshi,chhi,ㄑㄧ,,,,,,True,False
 tsîng-hîng,情形,True,False,0,False,100,chêng-hêng,tsing5hing5,cheng5heng5,ㄐㄧㄥˊㄏㄧㄥˊ,,tsinghing,chengheng,ㄐㄧㄥㄏㄧㄥ,,tsh,chh,ㄐㄏ,,True,False
+siōnn-bē-kàu,想袂到,False,False,16,False,100,siōⁿ-bē-kàu,sionn7be7kau3,sionn7be7kau3,ㄒㄧㆧ˫ㆠㆤ˫ㄍㄠ˪,,sionnbekau,sionnbekau,ㄒㄧㆧㆠㆤㄍㄠ,,sbk,sbk,ㄒㆠㄍ,,True,False
+siūnn-bē-kàu,想袂到,True,False,0,False,100,siūⁿ-bē-kàu,siunn7be7kau3,siunn7be7kau3,ㄒㄧㆫ˫ㆠㆤ˫ㄍㄠ˪,,siunnbekau,siunnbekau,ㄒㄧㆫㆠㆤㄍㄠ,,sbk,sbk,ㄒㆠㄍ,,True,False
+siǔnn-bē-kàu,想袂到,False,False,1,False,100,siǔⁿ-bē-kàu,siunn6be7kau3,siunn6be7kau3,ㄒㄧㆫˇㆠㆤ˫ㄍㄠ˪,,siunnbekau,siunnbekau,ㄒㄧㆫㆠㆤㄍㄠ,,sbk,sbk,ㄒㆠㄍ,,True,False
 siōnn-kóng,想講,False,False,16,False,100,siōⁿ-kóng,sionn7kong2,sionn7kong2,ㄒㄧㆧ˫ㄍㆲˋ,,sionnkong,sionnkong,ㄒㄧㆧㄍㆲ,,sk,sk,ㄒㄍ,,True,False
 siūnn-kóng,想講,True,False,0,False,100,siūⁿ-kóng,siunn7kong2,siunn7kong2,ㄒㄧㆫ˫ㄍㆲˋ,,siunnkong,siunnkong,ㄒㄧㆫㄍㆲ,,sk,sk,ㄒㄍ,,True,False
 siǔnn-kóng,想講,False,False,1,False,100,siǔⁿ-kóng,siunn6kong2,siunn6kong2,ㄒㄧㆫˇㄍㆲˋ,,siunnkong,siunnkong,ㄒㄧㆫㄍㆲ,,sk,sk,ㄒㄍ,,True,False
@@ -8193,6 +8196,9 @@ khún,惲,False,False,0,True,50,khún,khun2,khun2,ㄎㄨㄣˋ,,khun,khun,ㄎㄨ�
 ûn,惲,False,False,0,True,50,ûn,un5,un5,ㄨㄣˊ,,un,un,ㄨㄣ,,,,,,True,False
 siōnn,想,False,False,16,True,50,siōⁿ,sionn7,sionn7,ㄒㄧㆧ˫,,sionn,sionn,ㄒㄧㆧ,,,,,,True,False
 siǔnn,想,False,False,1,False,50,siǔⁿ,siunn6,siunn6,ㄒㄧㆫˇ,,siunn,siunn,ㄒㄧㆫ,,,,,,True,False
+siōnn-buē-kàu,想袂到,False,False,16,False,50,siōⁿ-bōe-kàu,sionn7bue7kau3,sionn7boe7kau3,ㄒㄧㆧ˫ㆠㄨㆤ˫ㄍㄠ˪,,sionnbuekau,sionnboekau,ㄒㄧㆧㆠㄨㆤㄍㄠ,,sbk,sbk,ㄒㆠㄍ,,True,False
+siūnn-buē-kàu,想袂到,True,False,0,False,50,siūⁿ-bōe-kàu,siunn7bue7kau3,siunn7boe7kau3,ㄒㄧㆫ˫ㆠㄨㆤ˫ㄍㄠ˪,,siunnbuekau,siunnboekau,ㄒㄧㆫㆠㄨㆤㄍㄠ,,sbk,sbk,ㄒㆠㄍ,,True,False
+siǔnn-buē-kàu,想袂到,False,False,1,False,50,siǔⁿ-bōe-kàu,siunn6bue7kau3,siunn6boe7kau3,ㄒㄧㆫˇㆠㄨㆤ˫ㄍㄠ˪,,siunnbuekau,siunnboekau,ㄒㄧㆫㆠㄨㆤㄍㄠ,,sbk,sbk,ㄒㆠㄍ,,True,False
 tshuí,惴,False,False,0,True,50,chhúi,tshui2,chhui2,ㄘㄨㄧˋ,,tshui,chhui,ㄘㄨㄧ,,,,,,True,False
 tia̍p,惵,False,False,0,True,50,tia̍p,tiap8,tiap8,ㄉㄧㄚㆴ̇,,tiap,tiap,ㄉㄧㄚㆴ,,,,,,True,False
 hiânn,惶,True,False,0,True,50,hiâⁿ,hiann5,hiann5,ㄏㄧㆩˊ,,hiann,hiann,ㄏㄧㆩ,,,,,,True,False
@@ -46929,6 +46935,7 @@ bē-tsò--tit,袂做得,True,False,0,False,12,bē-chò--tit,be7tso3tit4,be7cho3t
 bē-tsòr--tit,袂做得,False,False,48,False,12,bē-chòr--tit,be7tsor3tit4,be7chor3tit4,ㆠㆤ˫ㄗㄜ˪ㄉㄧㆵ,ㆠㆤ˫ㄗㄛ˪ㄉㄧㆵ,betsortit,bechortit,ㆠㆤㄗㄜㄉㄧㆵ,ㆠㆤㄗㄛㄉㄧㆵ,btst,bcht,ㆠㄗㄉ,,True,False
 buē-phok-ké-phok,袂博假博,True,False,0,False,12,bōe-phok-ké-phok,bue7phok4ke2phok4,boe7phok4ke2phok4,ㆠㄨㆤ˫ㄆㆦㆻㄍㆤˋㄆㆦㆻ,,buephokkephok,boephokkephok,ㆠㄨㆤㄆㆦㆻㄍㆤㄆㆦㆻ,,bphkph,bphkph,ㆠㄆㄍㄆ,,True,False
 bē-phok-ké-phok,袂博假博,True,False,0,False,12,bē-phok-ké-phok,be7phok4ke2phok4,be7phok4ke2phok4,ㆠㆤ˫ㄆㆦㆻㄍㆤˋㄆㆦㆻ,,bephokkephok,bephokkephok,ㆠㆤㄆㆦㆻㄍㆤㄆㆦㆻ,,bphkph,bphkph,ㆠㄆㄍㄆ,,True,False
+buē-hiáu kiàn-siàu,袂曉見笑,True,False,0,False,12,bōe-hiáu kiàn-siàu,bue7hiau2kian3siau3,boe7hiau2kian3siau3,ㆠㄨㆤ˫ㄏㄧㄠˋㄍㄧㄢ˪ㄒㄧㄠ˪,,buehiaukiansiau,boehiaukiansiau,ㆠㄨㆤㄏㄧㄠㄍㄧㄢㄒㄧㄠ,,bhks,bhks,ㆠㄏㄍㄒ,,True,False
 bē-hiáu kiàn-siàu,袂曉見笑,True,False,0,False,12,bē-hiáu kiàn-siàu,be7hiau2kian3siau3,be7hiau2kian3siau3,ㆠㆤ˫ㄏㄧㄠˋㄍㄧㄢ˪ㄒㄧㄠ˪,,behiaukiansiau,behiaukiansiau,ㆠㆤㄏㄧㄠㄍㄧㄢㄒㄧㄠ,,bhks,bhks,ㆠㄏㄍㄒ,,True,False
 buē-īng--tit,袂用得,True,False,0,False,12,bōe-ēng--tit,bue7ing7tit4,boe7eng7tit4,ㆠㄨㆤ˫ㄧㄥ˫ㄉㄧㆵ,,bueingtit,boeengtit,ㆠㄨㆤㄧㄥㄉㄧㆵ,,bit,bet,ㆠㄧㄉ,,True,False
 buě-ǐng--tit,袂用得,True,False,0,False,12,bǒe-ěng--tit,bue6ing6tit4,boe6eng6tit4,ㆠㄨㆤˇㄧㄥˇㄉㄧㆵ,,bueingtit,boeengtit,ㆠㄨㆤㄧㄥㄉㄧㆵ,,bit,bet,ㆠㄧㄉ,,True,False
