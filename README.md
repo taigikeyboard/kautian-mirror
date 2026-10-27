@@ -9,7 +9,8 @@ Live: <https://taigikeyboard.tw/kautian-mirror/>
 ## Features
 
 - One search box with live suggestions: Hanzi, Tâi-lô (tone marks, tone numbers, or toneless),
-  Pe̍h-ōe-jī, Zhuyin keyboard input, Taiwanese Phonetic Symbols, abbreviations, raw regex
+  Pe̍h-ōe-jī, mixed Hanji and romanization (`bē赴` / `be7赴` / `袂hù` → 袂赴),
+  Zhuyin keyboard input, Taiwanese Phonetic Symbols, abbreviations, raw regex
 - Entry pages: readings (TL + auto-converted POJ and 方音符號), senses, examples, alternative readings,
   variant characters, 又見音 (same-hanzi entries), synonyms and antonyms, 語音差異 (accent readings),
   詞彙比較 (per-accent vocabulary tables; both tables also show converted POJ / 方音符號), word audio

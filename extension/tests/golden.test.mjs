@@ -256,6 +256,30 @@ test("Hanzi substring: 早 can find 𠢕早 within the dropdown limit", () => {
   assert.equal(internal?.tier, TIER.SUBSTR);
 });
 
+test("mixed Hanji and romanization: 袂赴 matches either position, tones, and separators", () => {
+  for (const q of ["bē赴", "be7赴", "BE7-赴", "bē 赴", "袂hù", "袂hu3", "袂-hu3"]) {
+    const r = engine.query(q);
+    assert.deepEqual([r.results[0]?.hanzi, r.results[0]?.tl, r.results[0]?.tier], ["袂赴", "bē-hù", TIER.TONED], q);
+    assert.equal(r.results.find((x) => x.hanzi === "袂赴市")?.tier, TIER.PREFIX, q);
+  }
+  for (const q of ["be赴", "袂hu"]) {
+    assert.equal(engine.query(q).results[0]?.hanzi, "袂赴", q);
+    assert.equal(engine.query(q).results[0]?.tier, TIER.EXACT, q);
+  }
+  for (const q of ["bé赴", "be2赴", "袂hú", "b赴", "赴bē"]) {
+    assert.ok(!hanzis(engine.query(q)).includes("袂赴"), q);
+  }
+});
+
+test("mixed Hanji and romanization: POJ, multi-syllable runs, variant folding and Unicode", () => {
+  for (const [q, word] of [["hoé車", "火車"], ["hoe2車", "火車"], ["火chhia", "火車"], ["tai5pak4車站", "臺北車站"], ["台pak", "臺北"], ["𠢕tsa2", "𠢕早"], ["gâu早", "𠢕早"]]) {
+    assert.equal(engine.query(q).results[0]?.hanzi, word, q);
+  }
+  assert.deepEqual(engine.query("be\u0304赴").results, engine.query("bē赴").results);
+  assert.equal(engine.query("袂h").results.find((x) => x.hanzi === "袂赴")?.tier, TIER.SPLIT_PREFIX);
+  assert.equal(engine.query("hù市").results.find((x) => x.hanzi === "袂赴市")?.tier, TIER.SUBSTR);
+});
+
 test("TPS input: ㆠㄨㄣˊ → 文", () => {
   const r = engine.query("ㆠㄨㄣˊ");
   assert.ok(hanzis(r).includes("文"));

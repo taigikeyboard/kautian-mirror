@@ -7,6 +7,7 @@ import { deriveTlNotone, derivePojNotone, deriveTpsNotone, hasExplicitTpsTone, S
 import { queryFold, dataFold } from "./zhuyin-fold.js";
 import { fuzzyScan } from "./fuzzy.js";
 import { hasRegexSyntax, parsePattern, regexScan } from "./regex-mode.js";
+import { parseMixed, alignMixed, matchMixed } from "./mixed.js";
 
 // Ranking tiers (§6.3)
 export const TIER = {
@@ -354,6 +355,26 @@ export function createEngine(packed) {
     }
   }
 
+  const mixedRows = new Array(n);
+  function queryMixed(mixed, tiers) {
+    const mixedTiers = {
+      exact: mixed.hasTone ? TIER.TONED : TIER.EXACT,
+      prefix: TIER.PREFIX,
+      splitPrefix: TIER.SPLIT_PREFIX,
+      substring: TIER.SUBSTR,
+    };
+    for (let i = 0; i < n; i++) {
+      // Hanji narrows the scan before we build any syllable alignment. Cache
+      // only visited rows, so ordinary searches pay no additional load cost.
+      if (!hanziFold[i].includes(mixed.anchor)) continue;
+      if (mixedRows[i] === undefined) {
+        mixedRows[i] = alignMixed(hanziFold[i], d.tl[i], d.poj[i], d.tlNum[i]);
+      }
+      const kind = matchMixed(mixed, mixedRows[i]);
+      if (kind) add(tiers, i, mixedTiers[kind]);
+    }
+  }
+
   function queryBopomofo(input, tiers) {
     // Toned-exact: TPS with tone marks (or none = tone 1) matches tps_num;
     // unmarked input shares the EXACT tier, as in queryLatin
@@ -380,7 +401,11 @@ export function createEngine(packed) {
     const isRegex = hasRegexSyntax(input);
     let scanInput = input;
     if (!isRegex) {
-      if (mode === "hanzi") queryHanzi(input, tiers);
+      if (mode === "hanzi") {
+        const mixed = parseMixed(input);
+        if (mixed) queryMixed(mixed, tiers);
+        else queryHanzi(input, tiers);
+      }
       else if (mode === "bopomofo") queryBopomofo(input, tiers);
       else {
         queryLatin(input, tiers);
