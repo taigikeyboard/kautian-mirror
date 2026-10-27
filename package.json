@@ -15,11 +15,13 @@
     "build:entries": "node scripts/build-entries.mjs",
     "build:site": "node esbuild.config.mjs",
     "build:ext": "node extension/esbuild.config.mjs",
-    "build": "npm run build:index && npm run build:entries && npm run build:site && npm run build:ext",
+    "build": "npm run build:index && npm run build:entries && npm run build:site && npm run build:ext && npm run publish:data",
+    "fetch:upstream": "node scripts/fetch-upstream.mjs",
+    "publish:data": "node scripts/publish-data.mjs",
     "serve": "node esbuild.config.mjs --serve",
     "test": "node --test \"tests/*.test.mjs\" \"extension/tests/*.test.mjs\"",
     "bench": "node extension/tests/bench.mjs",
-    "package:ext": "npm run build && cd extension && rm -f kautian-extension.zip && zip -q kautian-extension.zip manifest.json background.js icons/icon16.png icons/icon32.png icons/icon48.png icons/icon128.png dist/content.js dist/content.css data/kautian.min.json options/options.html options/options.css options/options.js && ls -la kautian-extension.zip"
+    "package:ext": "npm run build && cd extension && rm -f kautian-extension.zip && zip -q kautian-extension.zip manifest.json icons/icon16.png icons/icon32.png icons/icon48.png icons/icon128.png dist/background.js dist/content.js dist/content.css data/kautian.min.json options/options.html options/options.css options/options.js && ls -la kautian-extension.zip"
   },
   "devDependencies": {
     "esbuild": "^0.28.2"

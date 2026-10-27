@@ -6,6 +6,15 @@ import { join } from "node:path";
 const DIR = import.meta.dirname;
 
 await build({
+  entryPoints: [join(DIR, "src/background/main.js")],
+  bundle: true,
+  format: "iife",
+  outfile: join(DIR, "dist/background.js"),
+  target: ["chrome100"],
+  logLevel: "info",
+});
+
+await build({
   entryPoints: [join(DIR, "src/content/main.js")],
   bundle: true,
   format: "iife",

@@ -57,15 +57,31 @@ Pushes to `main` deploy to GitHub Pages via `.github/workflows/pages.yml` (with 
 [taigikeyboard](https://github.com/taigikeyboard/taigikeyboard) (`dictionary/sources/official/kautian/data/`).
 `extension/word_unigrams.tsv` is its corpus word counts (`dictionary/shared/data/`): search results
 rank more used words first.
-`make sync-data` fetches the latest from taigikeyboard `main` and prints the diff; then
-`make build test` and commit.
+`make sync-data` fetches one commit from taigikeyboard `main`, rebuilds and tests locally.
+It does not change the extension version, commit, push, or create a release.
 
 ## Data updates
 
 taigikeyboard's `Kautian watch` workflow checks the MOE `kautian.ods` weekly and opens an issue
-there when its rows change. Once taigikeyboard refreshes its capture: `make sync-data`,
-`make build test`, push `main` (deploys the site), then `make package` and upload the zip to the
-Chrome Web Store.
+there when its rows change. The site deployment checks taigikeyboard `main` daily at 09:00 Asia/Taipei,
+builds from one upstream commit, and publishes the site and validated search JSON together.
+Scheduled checks can be delayed by GitHub Actions.
+Scheduled checks compare the three source files' Git blob identities and the site commit with
+the published descriptor. Unchanged inputs and site code skip downloading, building and
+deployment. Pushes and manual runs still build the site; individual matching source files are
+reused without downloading. Only a successful deployment advances the published comparison state.
+
+From extension version 0.2.0, the extension uses its packaged dictionary on first use and checks
+for compatible data updates during use, once per daily window starting at 09:00 Asia/Taipei,
+matching the site schedule. If the browser is closed, it checks on the first use afterwards.
+Updates are validated and stored
+locally; a failed update keeps the existing dictionary. An updated dictionary is used on the
+next page load. Pure data updates do not require a Chrome Web Store release; extension code
+changes still do.
+
+The format-specific descriptor is `data/v6/latest.json`; it identifies a JSON snapshot by SHA-256
+and records its upstream commit on deployment. Older extension formats need their own compatible
+data endpoint when a future format is introduced.
 
 The ODS has the 詞彙比較 tables but not which entry shows which table (MOE curates the links,
 sometimes across unrelated hanzi), so `npm run build:comparisons` reads them off every official

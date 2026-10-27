@@ -57,10 +57,10 @@ function init() {
   function ensureData() {
     if (engine || loading) return;
     loading = true;
-    fetch(dataUrl)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
+    chrome.runtime.sendMessage({ type: "dictionary.get" })
+      .then((response) => {
+        if (!response?.data) throw new Error(response?.error || "Dictionary service unavailable");
+        return response.data;
       })
       .then((data) => {
         engine = createEngine(data);

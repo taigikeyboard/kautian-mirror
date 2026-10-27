@@ -1,6 +1,6 @@
 # 教典鬥搜揣
 
-A zero-permission Chrome MV3 extension that adds enhanced search suggestions to the Ministry of
+A Chrome MV3 extension that adds enhanced search suggestions to the Ministry of
 Education's [Dictionary of Frequently-Used Taiwan Taiwanese](https://sutian.moe.edu.tw/).
 
 ## Features
@@ -35,7 +35,14 @@ and select the `extension/` folder after running `make build`.
 
 ## License and Privacy
 
-The source code is MIT licensed. The bundled headword data originates from the Ministry of
+The extension includes an initial dictionary and checks during use for compatible JSON
+updates hosted at <https://taigikeyboard.tw/kautian-mirror/>. Validated data is cached locally;
+updates become available on the next page load. Failed downloads keep the current dictionary.
+Checks use the same daily 09:00 Asia/Taipei boundary as the site. If the browser is closed,
+the check runs on first use afterwards, once per daily window.
+Searches remain local, and data-only updates do not require an extension release.
+
+The source code is MIT licensed. The headword data originates from the Ministry of
 Education dictionary and is redistributed under
 [CC BY-ND 3.0 TW](https://creativecommons.org/licenses/by-nd/3.0/tw/).
 

@@ -1,12 +1,18 @@
 # Privacy Policy for 教典鬥搜揣
 
-Effective date: August 10, 2026
+Effective date: October 27, 2026
 
 教典鬥搜揣 does not collect, store, transmit, sell, or share personal information or user data.
 
 Search terms entered by the user are processed locally on the user's device and matched against
-dictionary data bundled with the extension. Search terms are not sent to the developer or to any
+dictionary data stored locally by the extension. Search terms are not sent to the developer or to any
 third party.
+
+The extension includes an initial dictionary and checks at most once daily during use for updated
+dictionary JSON at <https://taigikeyboard.tw/kautian-mirror/>. These requests contain no search terms,
+entry history, or preferences. The hosting provider receives normal network request information,
+including the IP address. Validated updates are cached on the device; failed updates keep the
+existing dictionary. All executable code remains bundled with the extension.
 
 To rank recently opened entries first, the extension keeps a short list (at most 50) of recently
 opened dictionary-entry ids in the browser's local extension storage on the user's device only.
