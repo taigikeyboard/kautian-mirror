@@ -62,10 +62,14 @@ It does not change the extension version, commit, push, or create a release.
 
 ## Data updates
 
-taigikeyboard's `Kautian watch` workflow checks the MOE `kautian.ods` weekly and opens an issue
-there when its rows change. The site deployment checks taigikeyboard `main` daily at 09:00 Asia/Taipei,
-builds from one upstream commit, and publishes the site and validated search JSON together.
-Scheduled checks can be delayed by GitHub Actions.
+taigikeyboard's `Kautian watch` workflow is configured to check the MOE `kautian.ods` daily
+at 08:00 Asia/Taipei, rebuild changed data and open a PR for manual merge after verification.
+Merging the data PR closes its watch issue, preserving the source diff in the closed issue.
+The site deployment checks taigikeyboard `main` daily at 09:00 Asia/Taipei, leaving one hour
+for the upstream rebuild and verification. It builds from one upstream commit and publishes the site and
+validated search JSON together. GitHub Actions can delay scheduled checks; these times
+do not enforce a completion dependency. If the upstream update has not merged when the
+site checks, it uses the last committed data and detects the update on a later run.
 Scheduled checks compare the three source files' Git blob identities and the site commit with
 the published descriptor. Unchanged inputs and site code skip downloading, building and
 deployment. Pushes and manual runs still build the site; individual matching source files are
