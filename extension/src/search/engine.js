@@ -402,9 +402,10 @@ export function createEngine(packed) {
     let scanInput = input;
     if (!isRegex) {
       if (mode === "hanzi") {
+        // Literal search still runs: some headwords contain Latin (gat-lá油)
+        queryHanzi(input, tiers);
         const mixed = parseMixed(input);
         if (mixed) queryMixed(mixed, tiers);
-        else queryHanzi(input, tiers);
       }
       else if (mode === "bopomofo") queryBopomofo(input, tiers);
       else {
