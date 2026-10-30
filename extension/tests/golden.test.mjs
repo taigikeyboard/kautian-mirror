@@ -280,6 +280,13 @@ test("mixed Hanji and romanization: POJ, multi-syllable runs, variant folding an
   assert.equal(engine.query("hù市").results.find((x) => x.hanzi === "袂赴市")?.tier, TIER.SUBSTR);
 });
 
+test("mixed Hanji and romanization: partially toned runs, and TONED needs every run toned", () => {
+  assert.deepEqual(engine.query("tai5pak車站").results[0]?.hanzi, "臺北車站");
+  const r = engine.query("bē赴tshi").results.find((x) => x.hanzi === "袂赴市");
+  assert.equal(r?.tier, TIER.EXACT);
+  assert.equal(engine.query("bē赴tshī").results.find((x) => x.hanzi === "袂赴市")?.tier, TIER.TONED);
+});
+
 test("mixed Hanji and romanization: headwords spelled with Latin keep literal Hanzi matching", () => {
   for (const q of ["gat-lá油", "ló-lí仔", "xx姊仔"]) {
     const tier = engine.query(q).results.find((x) => x.hanzi === q)?.tier;

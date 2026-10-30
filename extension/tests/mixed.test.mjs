@@ -24,6 +24,22 @@ test("mixed matching consumes multiple romanized syllables without enumerating s
   assert.equal(match("臺p車站", entry), null);
 });
 
+test("mixed matching lets toned runs leave some syllables toneless", () => {
+  const entry = row("臺北車站", "tâi-pak tshia-tsām", "tâi-pak chhia-chām", "tai5 pak4 tshia1 tsam7");
+  for (const input of ["tai5pak車站", "taipak4車站", "tâipak4車站", "臺pak4tshia站"]) {
+    assert.equal(match(input, entry), "exact", input);
+  }
+  for (const input of ["tai2pak車站", "tai5pak8車站", "tai5p車站"]) {
+    assert.equal(match(input, entry), null, input);
+  }
+});
+
+test("mixed parsing marks TONED only when every roman run is toned", () => {
+  assert.equal(parseMixed("bē赴tshī").allToned, true);
+  assert.equal(parseMixed("bē赴tshi").allToned, false);
+  assert.equal(parseMixed("be赴").allToned, false);
+});
+
 test("mixed matching distinguishes exact, prefix, partial syllable, and substring", () => {
   const entry = row("袂赴市", "bē-hù-tshī", "bē-hù-chhī", "be7 hu3 tshi7");
   assert.equal(match("bē赴", entry), "prefix");

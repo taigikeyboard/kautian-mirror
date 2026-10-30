@@ -6,6 +6,7 @@ import { deriveTlNotone, derivePojNotone, SYLLABLE_SEP_RE } from "./derive.js";
 const HAN_RE = /\p{Script=Han}/u;
 const TOKEN_RE = /\p{Script=Han}+|[\p{Script=Latin}\p{M}0-9ⁿᴺ]+(?:[-\s·'’]+[\p{Script=Latin}\p{M}0-9ⁿᴺ]+)*/gu;
 const SEPARATOR_RE = /^[-\s·'’]*$/u;
+const TONE_AFTER_RE = /^[0-9\p{M}]/u;
 
 export function parseMixed(input) {
   const text = foldHanzi(input.trim());
@@ -26,7 +27,8 @@ export function parseMixed(input) {
   if (!SEPARATOR_RE.test(text.slice(end)) || !hanji.length || !tokens.some((t) => t.tlKey)) return null;
   return {
     tokens,
-    hasTone: tokens.some((t) => t.hasTone),
+    // TONED tier only when every roman run carries a tone (bē赴tshi is EXACT)
+    allToned: tokens.every((t) => t.char || t.hasTone),
     anchor: hanji.reduce((a, b) => a.length >= b.length ? a : b),
   };
 }
@@ -43,10 +45,42 @@ export function alignMixed(hanzi, tl, poj, tlNum) {
   return { chars, tls, pojs, nums, tlKeys: tls.map(deriveTlNotone), pojKeys: pojs.map(derivePojNotone) };
 }
 
+// Toned roman run starting at syllable pos → syllable positions where it ends.
+// Each syllable may be typed toned or toneless, so tai5pak matches tai5 pak4;
+// a toneless syllable must not be followed by a tone digit or mark (be2 ≠ bē).
+function tonedEnds(token, row, pos) {
+  const { chars, tls, pojs, nums, tlKeys, pojKeys } = row;
+  const ends = new Set();
+  for (const text of new Set([token.toned, token.tonedTl])) {
+    let states = [[pos, 0]];
+    while (states.length) {
+      const next = [];
+      for (const [syllable, offset] of states) {
+        if (offset === text.length) {
+          ends.add(syllable);
+          continue;
+        }
+        if (syllable === chars.length) continue;
+        for (const toned of new Set([tls[syllable], pojs[syllable], nums[syllable]])) {
+          if (text.startsWith(toned, offset)) next.push([syllable + 1, offset + toned.length]);
+        }
+        for (const key of new Set([tlKeys[syllable], pojKeys[syllable]])) {
+          const after = offset + key.length;
+          if (text.startsWith(key, offset) && !TONE_AFTER_RE.test(text.slice(after, after + 1))) {
+            next.push([syllable + 1, after]);
+          }
+        }
+      }
+      states = next;
+    }
+  }
+  return ends;
+}
+
 // → exact | prefix | splitPrefix | substring | null
 export function matchMixed(query, row) {
   if (!row) return null;
-  const { chars, tls, pojs, nums, tlKeys, pojKeys } = row;
+  const { chars, tlKeys, pojKeys } = row;
   let best = null;
   const ranks = { exact: 0, prefix: 1, splitPrefix: 2, substring: 3 };
   function record(start, end, partial = false) {
@@ -64,17 +98,18 @@ export function matchMixed(query, row) {
           if (chars[pos] === token.char) next.add(pos + 1);
           continue;
         }
-        let tl = "", poj = "", num = "", tlKey = "", pojKey = "";
+        if (token.hasTone) {
+          for (const end of tonedEnds(token, row, pos)) next.add(end);
+          continue;
+        }
+        let tlKey = "", pojKey = "";
         for (let end = pos; end < chars.length; end++) {
-          tl += tls[end]; poj += pojs[end]; num += nums[end];
           tlKey += tlKeys[end]; pojKey += pojKeys[end];
-          const exact = token.hasTone
-            ? [token.toned, token.tonedTl].some((key) => key === tl || key === poj || key === num)
-            : token.tlKey === tlKey || token.pojKey === pojKey;
+          const exact = token.tlKey === tlKey || token.pojKey === pojKey;
           if (exact) next.add(end + 1);
           // Only the final roman run may stop within a syllable. It cannot
           // hand the remaining letters to the next Hanji character.
-          if (last && !token.hasTone && !exact && (tlKey.startsWith(token.tlKey) || pojKey.startsWith(token.pojKey))) {
+          if (last && !exact && (tlKey.startsWith(token.tlKey) || pojKey.startsWith(token.pojKey))) {
             record(start, end + 1, true);
           }
         }

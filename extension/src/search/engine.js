@@ -358,7 +358,7 @@ export function createEngine(packed) {
   const mixedRows = new Array(n);
   function queryMixed(mixed, tiers) {
     const mixedTiers = {
-      exact: mixed.hasTone ? TIER.TONED : TIER.EXACT,
+      exact: mixed.allToned ? TIER.TONED : TIER.EXACT,
       prefix: TIER.PREFIX,
       splitPrefix: TIER.SPLIT_PREFIX,
       substring: TIER.SUBSTR,
