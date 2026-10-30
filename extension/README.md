@@ -7,6 +7,7 @@ Education's [Dictionary of Frequently-Used Taiwan Taiwanese](https://sutian.moe.
 
 - Tâi-lô with tone marks or tone numbers
 - Pe̍h-ōe-jī (POJ), Hanzi, and Taiwanese Phonetic Symbols (TPS)
+- Mixed Hanji and romanization: `bē赴`, `be7赴`, or `袂hù` → 袂赴 (`bē-hù`)
 - Approximate lookup from a standard Zhuyin keyboard
 - Case-, tone-, and hyphen-insensitive matching
 - Prefix, substring, abbreviation, and typo-tolerant search
