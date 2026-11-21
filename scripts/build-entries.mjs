@@ -25,6 +25,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { PUBLISHED_TYPES, readZipEntry, sheetRows } from "../extension/scripts/ods.mjs";
 import { convert } from "../vendor/taigi-converter/src/index.js";
+import { tidyTps } from "../extension/src/search/derive.js";
 import { ENTRIES_DIR, EXAMPLES_PATH, audioPath, bucketOf, shardPath } from "../src/data-paths.js";
 
 const SUBSTITUTE_MARK = "【替】";
@@ -53,9 +54,7 @@ function convertReading(tl, target) {
   }
 }
 
-// converter output pads punctuation and tone-1 syllables: "ㄍㆤ  ， ㄒㄧㄣ" → "ㄍㆤ，ㄒㄧㄣ"
-const toTps = (tl) =>
-  convertReading(tl, "zhuyin").replace(/\s*([，。；？！、])\s*/g, "$1").replace(/\s+/g, " ").trim();
+export const toTps = (tl) => tidyTps(convertReading(tl, "zhuyin"));
 
 // [poj, tps] shown beside a 語音差異 / 詞彙比較 reading
 function altRomanizations(tl) {
