@@ -6,6 +6,8 @@ import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { createEngine, TIER } from "../src/search/engine.js";
+import { spaceTps } from "../src/search/derive.js";
+import { toTps } from "../../scripts/build-entries.mjs";
 
 const DATA = join(dirname(fileURLToPath(import.meta.url)), "..", "data", "kautian.min.json");
 if (!existsSync(DATA)) {
@@ -415,4 +417,30 @@ test("ranking: a typed tone puts its toned-exact hit first", () => {
   assert.ok(r.results.length > 0);
   assert.equal(r.results[0].tier, TIER.TONED);
   assert.equal(r.results[0].tl.toLowerCase(), "ê");
+});
+
+test("TPS results show syllables space-separated, like the entry page", () => {
+  const top = engine.query("hó-sè").results[0];
+  // trace: tps_num "ㄏㄛˋㄙㆤ˪" cut at tl_num "ho2 se3" → toZhuyin "ㄏㄛˋ" + "ㄙㆤ˪"
+  assert.deepEqual([top.hanzi, top.tps], ["好勢", "ㄏㄛˋ ㄙㆤ˪"]);
+});
+
+test("every row's result TPS equals the entry page's TPS", () => {
+  const tps = packed.tps.split("\n");
+  const tl = packed.tl.split("\n");
+  const differ = tps.filter((t, i) => spaceTps(t, tlNums[i]) !== toTps(tl[i]));
+  assert.deepEqual(differ, []);
+});
+
+test("toned TPS with syllable spaces or the neutral-tone · finds the fused entry", () => {
+  for (const q of ["ㄏㄛˋㄙㆤ˪", "ㄏㄛˋ ㄙㆤ˪", "ㄏㄛˋ　ㄙㆤ˪"]) {
+    assert.equal(engine.query(q).results[0]?.hanzi, "好勢", q);
+  }
+  // partial input mid-typing reaches the fused column through the scan, spaced or not
+  for (const q of ["ㄏㄛˋㄙ", "ㄏㄛˋ ㄙ"]) {
+    assert.ok(hanzis(engine.query(q)).includes("好勢"), q);
+  }
+  for (const q of ["ㄊㄧㆩㄉㄧㄛㆷ̇", "ㄊㄧㆩ ㄉㄧㄛㆷ̇", "ㄊㄧㆩ ·ㄉㄧㄛㆷ̇"]) {
+    assert.equal(engine.query(q).results[0]?.hanzi, "聽著", q);
+  }
 });

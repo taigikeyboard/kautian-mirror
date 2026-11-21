@@ -3,7 +3,7 @@
 // Pure-function module — no DOM, no chrome APIs; testable directly in Node.
 import { classify } from "./detect.js";
 import { normalizeLatin, foldHanzi, normalizeTps } from "./normalize.js";
-import { deriveTlNotone, derivePojNotone, deriveTpsNotone, hasExplicitTpsTone, SYLLABLE_SEP_RE } from "./derive.js";
+import { deriveTlNotone, derivePojNotone, deriveTpsNotone, fuseTps, hasExplicitTpsTone, spaceTps, SYLLABLE_SEP_RE } from "./derive.js";
 import { queryFold, dataFold } from "./zhuyin-fold.js";
 import { fuzzyScan } from "./fuzzy.js";
 import { hasRegexSyntax, parsePattern, regexScan } from "./regex-mode.js";
@@ -142,7 +142,7 @@ export function createEngine(packed) {
         const b = stripJoin(d.poj[i]);
         if (b !== a) pairs.push([b, i]);
         pairs.push([d.tlNum[i].replace(/\s+/g, ""), i]);
-        const t = d.tps[i].trim();
+        const t = fuseTps(d.tps[i]);
         if (t) pairs.push([t, i]);
       }
       return buildSorted(pairs);
@@ -190,6 +190,9 @@ export function createEngine(packed) {
     return heads.get(d.id[i]) ?? i;
   }
   const headRow = (i) => (d.flags[i] & HIDDEN_ROW ? entryHead(i) : i);
+  // display TPS per row, spaced on first use (the data column is fused, ≡ CSV tps_num)
+  const spacedTps = new Array(n);
+  const displayTps = (i) => (spacedTps[i] ??= spaceTps(d.tps[i], d.tlNum[i]));
 
   // match hint for the UI, naming the headword form a typed form replaced: its reading for a
   // 又唸作-type or 語音差異 hit, its hanzi + 台羅 for a 詞彙比較 hit (the page the row opens),
@@ -197,7 +200,7 @@ export function createEngine(packed) {
   function matchedVia(i, h) {
     const f = d.flags[i];
     if (f & (FLAG.READING | FLAG.DIALECT)) {
-      return { kind: f & FLAG.READING ? "reading" : "dialect", text: d.tl[h], poj: d.poj[h], tps: d.tps[h] };
+      return { kind: f & FLAG.READING ? "reading" : "dialect", text: d.tl[h], poj: d.poj[h], tps: displayTps(h) };
     }
     if (f & FLAG.COMPARISON) return { kind: "comparison", text: d.hanzi[h], tl: d.tl[h] };
     if (isVariantSpelling(i)) return { kind: "variant", text: d.hanzi[entryHead(i)] };
@@ -223,7 +226,7 @@ export function createEngine(packed) {
       tl: d.tl[r],
       hanzi: d.hanzi[r],
       poj: d.poj[r],
-      tps: d.tps[r],
+      tps: displayTps(r),
       gloss: d.gloss[h], // first 華語釋義, cut at build time ("" when the entry has none)
       main: (d.flags[h] & FLAG.MAIN) !== 0,
       variant: (d.flags[h] & FLAG.VARIANT) !== 0,
@@ -379,7 +382,7 @@ export function createEngine(packed) {
     // Toned-exact: TPS with tone marks (or none = tone 1) matches tps_num;
     // unmarked input shares the EXACT tier, as in queryLatin
     const hasTone = hasExplicitTpsTone(input);
-    searchExact(ixToned(), input.normalize("NFC").trim(), (i) =>
+    searchExact(ixToned(), fuseTps(input), (i) =>
       add(tiers, i, hasTone ? TIER.TONED : TIER.EXACT));
     if (hasTone) return;
     const tpsKey = normalizeTps(input);
@@ -407,7 +410,10 @@ export function createEngine(packed) {
         const mixed = parseMixed(input);
         if (mixed) queryMixed(mixed, tiers);
       }
-      else if (mode === "bopomofo") queryBopomofo(input, tiers);
+      else if (mode === "bopomofo") {
+        queryBopomofo(input, tiers);
+        scanInput = fuseTps(input); // the scanned tps column is fused (≡ CSV tps_num)
+      }
       else {
         queryLatin(input, tiers);
         const normalized = normalizeLatin(input);
