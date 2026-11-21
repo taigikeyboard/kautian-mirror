@@ -22,7 +22,7 @@ import { gzipSync } from "node:zlib";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { dataFold } from "../src/search/zhuyin-fold.js";
-import { deriveTlNotone, derivePojNotone, deriveTpsNotone } from "../src/search/derive.js";
+import { deriveTlNotone, derivePojNotone, deriveTpsNotone, fuseTps } from "../src/search/derive.js";
 import { PUBLISHED_TYPES, readZipEntry, sheetRows } from "./ods.mjs";
 import { buildEntries, readComparisonLinks, readSheets } from "../../scripts/build-entries.mjs";
 import { FLAG } from "../src/search/engine.js";
@@ -67,12 +67,12 @@ function parseCsv(text, delimiter = ",") {
 // --- ODS: build the (roman, hanzi) → { id, variant } join map ---
 const MARK_RE = /【[^】]*】/g;
 const normHanzi = (s) => s.normalize("NFC").replace(MARK_RE, "").trim();
-// display form: hyphens instead of spaces, original case kept
+// display form: original case and word spaces kept (a neutral-tone `--` run ends at a space)
 const displayRoman = (s) =>
-  s.normalize("NFC").replace(MARK_RE, "").trim().replace(/\s+/g, "-");
-// join key: additionally lowercased, neutral-tone -- folded to -
+  s.normalize("NFC").replace(MARK_RE, "").trim().replace(/\s+/g, " ");
+// join key: hyphens instead of spaces, lowercased, neutral-tone -- folded to -
 const keyRoman = (s) =>
-  displayRoman(s).toLowerCase().replace(/^--/, "").replaceAll("--", "-");
+  displayRoman(s).replaceAll(" ", "-").toLowerCase().replace(/^--/, "").replaceAll("--", "-");
 const formKey = (roman, hanzi) => `${roman}${hanzi}`;
 
 function loadOdsForms(entries) {
@@ -274,7 +274,7 @@ function pushSynthesized(tl, hanzi, id, flag) {
   let tlNum = "";
   try {
     poj = convert(tl, "tl", "poj");
-    tps = convert(tl, "tl", "zhuyin").replace(/\s+/g, "");
+    tps = fuseTps(convert(tl, "tl", "zhuyin")); // ≡ CSV tps_num
     tlNum = toSiteTlNum(tl);
   } catch {
     synthFailures++; // keep the row anyway — tl/hanzi search still works

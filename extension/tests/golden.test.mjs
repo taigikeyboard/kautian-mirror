@@ -423,12 +423,18 @@ test("TPS results show syllables space-separated, like the entry page", () => {
   const top = engine.query("hó-sè").results[0];
   // trace: tps_num "ㄏㄛˋㄙㆤ˪" cut at tl_num "ho2 se3" → toZhuyin "ㄏㄛˋ" + "ㄙㆤ˪"
   assert.deepEqual([top.hanzi, top.tps], ["好勢", "ㄏㄛˋ ㄙㆤ˪"]);
+  // neutral tone: · before every syllable after `--` (tl thiann--tio̍h), as the entry page
+  const neutral = engine.query("thiann--tio̍h").results[0];
+  assert.deepEqual([neutral.hanzi, neutral.tps], ["聽著", "ㄊㄧㆩ ·ㄉㄧㄛㆷ̇"]);
+  // a sentence keeps its word spaces, so a neutral run ends at the next word
+  const sentence = engine.query("Tshit--á khah hìng peh--á.").results[0];
+  assert.equal(sentence.tps, "ㄑㄧㆵ ·ㄚˋ ㄎㄚㆷ ㄏㄧㄥ˪ ㄅㆤㆷ ·ㄚˋ。");
 });
 
 test("every row's result TPS equals the entry page's TPS", () => {
   const tps = packed.tps.split("\n");
   const tl = packed.tl.split("\n");
-  const differ = tps.filter((t, i) => spaceTps(t, tlNums[i]) !== toTps(tl[i]));
+  const differ = tps.map((t, i) => [tl[i], spaceTps(t, tl[i], tlNums[i]), toTps(tl[i])]).filter(([, got, want]) => got !== want);
   assert.deepEqual(differ, []);
 });
 
@@ -443,4 +449,10 @@ test("toned TPS with syllable spaces or the neutral-tone · finds the fused entr
   for (const q of ["ㄊㄧㆩㄉㄧㄛㆷ̇", "ㄊㄧㆩ ㄉㄧㄛㆷ̇", "ㄊㄧㆩ ·ㄉㄧㄛㆷ̇"]) {
     assert.equal(engine.query(q).results[0]?.hanzi, "聽著", q);
   }
+});
+
+test("partial toned TPS reaches rows whose reading has a neutral tone", () => {
+  // the scanned tps column stays fused (no ·), so a prefix across `--` still matches
+  assert.ok(hanzis(engine.query("ㄉㆭˋㄎㆨ")).includes("轉去"));
+  assert.ok(hanzis(engine.query("ㄌㄠ˫ㄎㄧ˪ㄚ")).includes("老去矣"));
 });
