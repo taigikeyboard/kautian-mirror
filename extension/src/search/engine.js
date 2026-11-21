@@ -192,7 +192,7 @@ export function createEngine(packed) {
   const headRow = (i) => (d.flags[i] & HIDDEN_ROW ? entryHead(i) : i);
   // display TPS per row, spaced on first use (the data column is fused, ≡ CSV tps_num)
   const spacedTps = new Array(n);
-  const displayTps = (i) => (spacedTps[i] ??= spaceTps(d.tps[i], d.tlNum[i]));
+  const displayTps = (i) => (spacedTps[i] ??= spaceTps(d.tps[i], d.tl[i], d.tlNum[i]));
 
   // match hint for the UI, naming the headword form a typed form replaced: its reading for a
   // 又唸作-type or 語音差異 hit, its hanzi + 台羅 for a 詞彙比較 hit (the page the row opens),
