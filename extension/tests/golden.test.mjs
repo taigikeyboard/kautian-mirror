@@ -446,7 +446,8 @@ test("toned TPS with syllable spaces or the neutral-tone · finds the fused entr
   for (const q of ["ㄏㄛˋㄙ", "ㄏㄛˋ ㄙ"]) {
     assert.ok(hanzis(engine.query(q)).includes("好勢"), q);
   }
-  for (const q of ["ㄊㄧㆩㄉㄧㄛㆷ̇", "ㄊㄧㆩ ㄉㄧㄛㆷ̇", "ㄊㄧㆩ ·ㄉㄧㄛㆷ̇"]) {
+  // ˙ (U+02D9): neutral before a syllable, tone 8 after a stop coda (data: U+0307)
+  for (const q of ["ㄊㄧㆩㄉㄧㄛㆷ̇", "ㄊㄧㆩ ㄉㄧㄛㆷ̇", "ㄊㄧㆩ ·ㄉㄧㄛㆷ̇", "ㄊㄧㆩ ˙ㄉㄧㄛㆷ̇", "ㄊㄧㆩ˙ㄉㄧㄛㆷ̇", "ㄊㄧㆩ ˙ㄉㄧㄛㆷ˙", "ㄊㄧㆩㄉㄧㄛㆷ˙"]) {
     assert.equal(engine.query(q).results[0]?.hanzi, "聽著", q);
   }
 });

@@ -49,10 +49,14 @@ export function hasExplicitTpsTone(tps) {
   return TPS_EXPLICIT_TONE_RE.test(tps.normalize("NFD"));
 }
 
-// tps (with tones) → toned key without syllable spaces or the neutral-tone ·, so the data's
-// fused form (≡ CSV tps_num) and a typed "ㄏㄛˋ ㄙㆤ˪" / "ㄊㄧㆩ ·ㄉㄧㄛㆷ̇" compare equal
+// tps (with tones) → toned key without syllable spaces or a neutral-tone mark, so the data's
+// fused form (≡ CSV tps_num) and a typed "ㄏㄛˋ ㄙㆤ˪" / "ㄊㄧㆩ ·ㄉㄧㄛㆷ̇" compare equal.
+// A typed ˙ (U+02D9, the Zhuyin keyboards' dot key) is tone 8 right after a stop coda
+// ㆴㆵㆻㆷ — the data writes that as U+0307 — and the neutral-tone mark anywhere else
+// ("ㄊㄧㆩ ˙ㄉㄧㄛㆷ˙" ≡ "ㄊㄧㆩㄉㄧㄛㆷ̇"). Unspaced after a stop coda it stays tone 8 — a neutral
+// syllable there needs the space ("ㄑㄧㆵ ˙ㄚˋ").
 export function fuseTps(tps) {
-  return tps.normalize("NFC").replace(/[\s·]+/g, "");
+  return tps.normalize("NFC").replace(/([ㆴㆵㆻㆷ])˙/g, "$1̇").replace(/[\s·˙]+/g, "");
 }
 
 // converter TPS output → one space between syllables, clause punctuation attached:
