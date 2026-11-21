@@ -56,7 +56,7 @@ export function hasExplicitTpsTone(tps) {
 // ("ㄊㄧㆩ ˙ㄉㄧㄛㆷ˙" ≡ "ㄊㄧㆩㄉㄧㄛㆷ̇"). Unspaced after a stop coda it stays tone 8 — a neutral
 // syllable there needs the space ("ㄑㄧㆵ ˙ㄚˋ").
 export function fuseTps(tps) {
-  return tps.normalize("NFC").replace(/([ㆴㆵㆻㆷ])˙/g, "$1̇").replace(/[\s·˙]+/g, "");
+  return tps.normalize("NFC").replace(/([ㆴㆵㆻㆷ])˙/g, "$1\u0307").replace(/[\s·˙]+/g, "");
 }
 
 // converter TPS output → one space between syllables, clause punctuation attached:
