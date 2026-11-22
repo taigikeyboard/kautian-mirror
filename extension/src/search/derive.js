@@ -8,7 +8,7 @@ import { toZhuyin } from "../../../vendor/taigi-converter/src/zhuyin.js";
 //
 // TPS tone-mark set: ˊˇˋ˙ (tones 2/6/3/neutral), ˆ (tone 9, U+02C6),
 // ˘ (U+02D8), ˪˫ (vertical tones 3/7), combining marks (incl. tone 8 U+0307),
-// whitespace (tone 1), · (neutral-tone prefix)
+// whitespace (tone 1), · (neutral-tone prefix, older converter output)
 export const TPS_TONE_RE = /[ˊˇˋ˙ˆ˘˪˫̀-ͯ\s·]/g;
 const TPS_EXPLICIT_TONE_RE = /[ˊˇˋ˙ˆ˘˪˫̀-ͯ·]/;
 
@@ -65,20 +65,20 @@ export function tidyTps(tps) {
   return tps.replace(/\s*([，。；？！、])\s*/g, "$1").replace(/\s+/g, " ").trim();
 }
 
-// per tl syllable: neutral-tone (after `--`, to the end of its word, as taigi-converter marks ·)
+// per tl syllable: neutral-tone (after `--`, to the end of its word, as taigi-converter marks ˙)
 function neutralSyllables(tl) {
   return tl.trim().split(/\s+/).flatMap((word) =>
     word.split("--").flatMap((segment, k) =>
       segment.split("-").filter(Boolean).map((t) => k > 0 && /\p{L}/u.test(t))));
 }
 
-// fused tps (≡ CSV tps_num) → spaced with neutral-tone ·, as the entry page writes it
-// ("ㄊㄧㆩㄉㄧㄛㆷ̇" → "ㄊㄧㆩ ·ㄉㄧㄛㆷ̇"). Unchanged when the tl / tl_num syllables do not
+// fused tps (≡ CSV tps_num) → spaced with neutral-tone ˙, as the entry page writes it
+// ("ㄊㄧㆩㄉㄧㄛㆷ̇" → "ㄊㄧㆩ ˙ㄉㄧㄛㆷ̇"). Unchanged when the tl / tl_num syllables do not
 // rebuild the fused form (0 rows of the current data).
 export function spaceTps(tps, tl, tlNum) {
   const syllables = tlNum.trim().split(/\s+/);
   const neutral = neutralSyllables(tl);
   if (neutral.length !== syllables.length) return tps;
-  const spaced = tidyTps(syllables.map((s, i) => (neutral[i] ? "·" : "") + toZhuyin(s)).join(" "));
+  const spaced = tidyTps(syllables.map((s, i) => (neutral[i] ? "˙" : "") + toZhuyin(s)).join(" "));
   return fuseTps(spaced) === fuseTps(tps) ? spaced : tps;
 }

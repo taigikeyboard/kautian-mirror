@@ -423,12 +423,12 @@ test("TPS results show syllables space-separated, like the entry page", () => {
   const top = engine.query("hó-sè").results[0];
   // trace: tps_num "ㄏㄛˋㄙㆤ˪" cut at tl_num "ho2 se3" → toZhuyin "ㄏㄛˋ" + "ㄙㆤ˪"
   assert.deepEqual([top.hanzi, top.tps], ["好勢", "ㄏㄛˋ ㄙㆤ˪"]);
-  // neutral tone: · before every syllable after `--` (tl thiann--tio̍h), as the entry page
+  // neutral tone: ˙ before every syllable after `--` (tl thiann--tio̍h), as the entry page
   const neutral = engine.query("thiann--tio̍h").results[0];
-  assert.deepEqual([neutral.hanzi, neutral.tps], ["聽著", "ㄊㄧㆩ ·ㄉㄧㄛㆷ̇"]);
+  assert.deepEqual([neutral.hanzi, neutral.tps], ["聽著", "ㄊㄧㆩ ˙ㄉㄧㄛㆷ̇"]);
   // a sentence keeps its word spaces, so a neutral run ends at the next word
   const sentence = engine.query("Tshit--á khah hìng peh--á.").results[0];
-  assert.equal(sentence.tps, "ㄑㄧㆵ ·ㄚˋ ㄎㄚㆷ ㄏㄧㄥ˪ ㄅㆤㆷ ·ㄚˋ。");
+  assert.equal(sentence.tps, "ㄑㄧㆵ ˙ㄚˋ ㄎㄚㆷ ㄏㄧㄥ˪ ㄅㆤㆷ ˙ㄚˋ。");
 });
 
 test("every row's result TPS equals the entry page's TPS", () => {
